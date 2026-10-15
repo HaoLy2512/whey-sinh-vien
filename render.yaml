@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: vitacore-supplements
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install && npx prisma db push && node prisma/seed.js && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_SETUP_SECRET
+        value: vitacore-bootstrap-secret-2026

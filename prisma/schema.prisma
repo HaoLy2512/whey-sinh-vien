@@ -1,0 +1,599 @@
+// Prisma Schema for VITACORE SUPPLEMENTS B2C Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 1. USER & AUTH
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  phone         String?   @unique
+  passwordHash  String
+  fullName      String
+  avatarUrl     String?
+  role          String    @default("USER") // USER, STAFF, ADMIN
+  status        String    @default("ACTIVE") // ACTIVE, LOCKED
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  addresses       UserAddress[]
+  orders          Order[]
+  reviews         ProductReview[]
+  wishlists       Wishlist[]
+  carts           Cart[]
+  auditLogs       AuditLog[]
+  supportTickets  SupportTicket[]
+  notifications   Notification[]
+  couponRedemptions CouponRedemption[]
+}
+
+// 2. RBAC ROLES & PERMISSIONS
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique // USER, STAFF, ADMIN
+  description String?
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  code        String   @unique // e.g. orders:read, orders:write, products:create, inventory:adjust
+  name        String
+  module      String   // orders, products, inventory, customers, content, settings
+  description String?
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+// 3. ADDRESSES
+model UserAddress {
+  id            String   @id @default(uuid())
+  userId        String
+  receiverName  String
+  phone         String
+  province      String
+  district      String
+  ward          String
+  streetAddress String
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 4. CATEGORIES & BRANDS
+model Category {
+  id             String    @id @default(uuid())
+  name           String
+  slug           String    @unique
+  description    String?
+  imageUrl       String?
+  parentId       String?
+  displayOrder   Int       @default(0)
+  isActive       Boolean   @default(true)
+  metaTitle      String?
+  metaDescription String?
+  createdAt      DateTime  @default(now())
+
+  parent         Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children       Category[] @relation("CategoryHierarchy")
+  products       Product[]
+}
+
+model Brand {
+  id            String    @id @default(uuid())
+  name          String
+  slug          String    @unique
+  logoUrl       String?
+  description   String?
+  website       String?
+  originCountry String?
+  isActive      Boolean   @default(true)
+  isFeatured    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  products Product[]
+}
+
+// 5. PRODUCTS & VARIANTS
+model Product {
+  id               String    @id @default(uuid())
+  name             String
+  slug             String    @unique
+  sku              String    @unique
+  barcode          String?
+  brandId          String?
+  categoryId       String?
+  shortDescription String?
+  description      String
+  price            Float
+  salePrice        Float?
+  costPrice        Float     @default(0) // Internal COGS - staff/admin only
+  goal             String    @default("Muscle Building") // Muscle Building, Recovery, Performance, General Nutrition
+  isFeatured       Boolean   @default(false)
+  isActive         Boolean   @default(true)
+  ratingAvg        Float     @default(5.0)
+  reviewCount      Int       @default(0)
+  usageGuide       String?
+  warnings         String?
+  allergens        String?
+  manufacturer     String?
+  originCountry    String?
+  nutritionFacts   String?   // JSON string of nutrition metrics (Protein, BCAA, Calories, Servings)
+  metaTitle        String?
+  metaDescription  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  brand        Brand?           @relation(fields: [brandId], references: [id])
+  category     Category?        @relation(fields: [categoryId], references: [id])
+  variants     ProductVariant[]
+  images       ProductImage[]
+  reviews      ProductReview[]
+  orderItems   OrderItem[]
+  cartItems    CartItem[]
+  wishlistItems WishlistItem[]
+  inventoryLots InventoryLot[]
+  inventoryRecords Inventory[]
+  inventoryMovements InventoryMovement[]
+}
+
+model ProductVariant {
+  id          String   @id @default(uuid())
+  productId   String
+  sku         String   @unique
+  title       String   // e.g. "5 lbs / Chocolate Fudge"
+  weight      String?  // e.g. "5 lbs (2.27kg)"
+  flavor      String?  // e.g. "Double Rich Chocolate"
+  packaging   String?  // Tub, Bag, Box
+  price       Float
+  salePrice   Float?
+  costPrice   Float    @default(0)
+  inStock     Int      @default(0)
+  barcode     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  inventoryLots InventoryLot[]
+  inventoryRecords Inventory[]
+  inventoryMovements InventoryMovement[]
+}
+
+model ProductImage {
+  id           String   @id @default(uuid())
+  productId    String
+  url          String
+  alt          String?
+  displayOrder Int      @default(0)
+  isThumbnail  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// 6. REVIEWS
+model ProductReview {
+  id               String   @id @default(uuid())
+  productId        String
+  userId           String
+  orderId          String?
+  rating           Int      @default(5)
+  title            String?
+  comment          String
+  verifiedPurchase Boolean  @default(true)
+  status           String   @default("APPROVED") // APPROVED, PENDING, REJECTED
+  createdAt        DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 7. WISHLIST & CART
+model Wishlist {
+  id        String         @id @default(uuid())
+  userId    String
+  createdAt DateTime       @default(now())
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items WishlistItem[]
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  wishlistId String
+  productId  String
+  createdAt  DateTime @default(now())
+
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([wishlistId, productId])
+}
+
+model Cart {
+  id         String     @id @default(uuid())
+  userId     String?
+  guestToken String?    @unique
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  productId String
+  variantId String?
+  quantity  Int      @default(1)
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+}
+
+// 8. ORDERS & PAYMENTS
+model Order {
+  id              String   @id @default(uuid())
+  orderNumber     String   @unique
+  userId          String?
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  shippingAddress String
+  province        String?
+  subtotal        Float
+  discountAmount  Float    @default(0)
+  shippingFee     Float    @default(0)
+  taxAmount       Float    @default(0)
+  totalAmount     Float
+  paymentMethod   String   @default("COD") // COD, BANK_TRANSFER, MOMO, VNPAY
+  paymentStatus   String   @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  orderStatus     String   @default("PENDING") // PENDING, CONFIRMED, PROCESSING, SHIPPING, DELIVERED, CANCELLED, RETURNED
+  couponCode      String?
+  internalNotes   String?
+  cancelReason    String?
+  trackingNumber  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user          User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+  payments      Payment[]
+  refunds       Refund[]
+  shipments     Shipment[]
+  redemptions   CouponRedemption[]
+}
+
+model OrderItem {
+  id           String   @id @default(uuid())
+  orderId      String
+  productId    String
+  variantId    String?
+  productName  String
+  productSku   String
+  variantTitle String?
+  price        Float
+  costPrice    Float    @default(0)
+  quantity     Int
+  total        Float
+  createdAt    DateTime @default(now())
+
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+}
+
+model OrderStatusHistory {
+  id             String   @id @default(uuid())
+  orderId        String
+  previousStatus String
+  newStatus      String
+  note           String?
+  changedBy      String   @default("SYSTEM") // USER, STAFF, ADMIN, SYSTEM
+  createdAt      DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  orderId       String
+  paymentMethod String
+  transactionId String?
+  amount        Float
+  status        String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  payloadJson   String?
+  createdAt     DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Refund {
+  id          String   @id @default(uuid())
+  orderId     String
+  amount      Float
+  reason      String
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  processedBy String?
+  note        String?
+  createdAt   DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Shipment {
+  id                String    @id @default(uuid())
+  orderId           String
+  carrier           String    @default("Standard Express") // GHTK, GHN, ViettelPost, Standard Express
+  trackingCode      String?
+  status            String    @default("READY_TO_SHIP") // READY_TO_SHIP, PICKED_UP, IN_TRANSIT, DELIVERED, FAILED
+  shippingFee       Float     @default(0)
+  estimatedDelivery DateTime?
+  deliveredAt       DateTime?
+  createdAt         DateTime  @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+// 9. INVENTORY MANAGEMENT & LOTS
+model Inventory {
+  id                String   @id @default(uuid())
+  productId         String
+  variantId         String?
+  warehouseLocation String   @default("Main Warehouse HN")
+  quantityOnHand    Int      @default(0)
+  quantityReserved  Int      @default(0)
+  quantityAvailable Int      @default(0)
+  minStockAlert     Int      @default(5)
+  updatedAt         DateTime @updatedAt
+
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, variantId, warehouseLocation])
+}
+
+model InventoryLot {
+  id                String    @id @default(uuid())
+  productId         String
+  variantId         String?
+  lotNumber         String    // e.g. "LOT-2024-WHEY-01"
+  manufacturingDate DateTime?
+  expiryDate        DateTime
+  quantityInitial   Int
+  quantityRemaining Int
+  status            String    @default("ACTIVE") // ACTIVE, EXPIRING_SOON, EXPIRED, DEPLETED
+  createdAt         DateTime  @default(now())
+
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  movements InventoryMovement[]
+}
+
+model InventoryMovement {
+  id            String   @id @default(uuid())
+  productId     String
+  variantId     String?
+  lotId         String?
+  movementType  String   // IMPORT, EXPORT, ADJUSTMENT, RETURN
+  quantity      Int
+  referenceType String   // ORDER, PO, MANUAL, AUDIT
+  referenceId   String?
+  note          String?
+  performedBy   String   @default("SYSTEM")
+  createdAt     DateTime @default(now())
+
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  lot     InventoryLot?   @relation(fields: [lotId], references: [id], onDelete: SetNull)
+}
+
+model Supplier {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  contactName String?
+  phone       String?
+  email       String?
+  address     String?
+  taxCode     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  purchaseOrders PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id           String    @id @default(uuid())
+  poNumber     String    @unique
+  supplierId   String
+  totalAmount  Float     @default(0)
+  status       String    @default("DRAFT") // DRAFT, ORDERED, RECEIVED, CANCELLED
+  expectedDate DateTime?
+  notes        String?
+  createdBy    String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  supplier Supplier            @relation(fields: [supplierId], references: [id])
+  items    PurchaseOrderItem[]
+}
+
+model PurchaseOrderItem {
+  id              String  @id @default(uuid())
+  purchaseOrderId String
+  productId       String
+  variantId       String?
+  quantity        Int
+  unitCost        Float
+  totalCost       Float
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+}
+
+// 10. MARKETING & PROMOTIONS
+model Coupon {
+  id              String    @id @default(uuid())
+  code            String    @unique
+  description     String?
+  discountType    String    @default("PERCENTAGE") // PERCENTAGE, FIXED_AMOUNT
+  discountValue   Float
+  minOrderValue   Float     @default(0)
+  maxDiscountValue Float?
+  usageLimit      Int       @default(100)
+  usageCount      Int       @default(0)
+  userLimit       Int       @default(1)
+  startDate       DateTime?
+  endDate         DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+
+  redemptions CouponRedemption[]
+}
+
+model CouponRedemption {
+  id              String   @id @default(uuid())
+  couponId        String
+  orderId         String
+  userId          String?
+  discountApplied Float
+  redeemedAt      DateTime @default(now())
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// 11. CONTENT MANAGEMENT (BANNERS & ARTICLES)
+model Banner {
+  id           String    @id @default(uuid())
+  title        String
+  subtitle     String?
+  imageUrl     String
+  linkUrl      String?
+  position     String    @default("HERO") // HERO, PROMO, SIDE
+  displayOrder Int       @default(0)
+  isActive     Boolean   @default(true)
+  startDate    DateTime?
+  endDate      DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model Article {
+  id              String    @id @default(uuid())
+  title           String
+  slug            String    @unique
+  excerpt         String
+  content         String
+  coverImage      String?
+  authorName      String    @default("Vitacore Nutrition Specialist")
+  category        String    @default("Nutrition") // Nutrition, Workout, Recovery, General
+  isPublished     Boolean   @default(true)
+  publishedAt     DateTime  @default(now())
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime  @default(now())
+}
+
+// 12. SUPPORT & NOTIFICATIONS
+model SupportTicket {
+  id           String   @id @default(uuid())
+  ticketNumber String   @unique
+  userId       String?
+  name         String
+  email        String
+  phone        String?
+  subject      String
+  message      String
+  priority     String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status       String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  staffReply   String?
+  assignedTo   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("SYSTEM") // ORDER, PROMO, SYSTEM
+  isRead    Boolean  @default(false)
+  linkUrl   String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 13. AUDIT LOGS & STORE SETTINGS
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  userEmail String?
+  userRole  String?
+  action    String   // CREATE, UPDATE, DELETE, LOGIN, EXPORT, STATUS_CHANGE
+  entity    String   // PRODUCT, ORDER, INVENTORY, USER, SETTING, COUPON
+  entityId  String?
+  details   String?  // JSON string of before/after or description
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model StoreSettings {
+  id                   String   @id @default("default")
+  storeName            String   @default("VITACORE SUPPLEMENTS")
+  legalName            String   @default("Vitacore Nutrition Vietnam Co., Ltd")
+  hotline              String   @default("1900 8899")
+  email                String   @default("support@vitacore.vn")
+  address              String   @default("123 Vo Van Tan, District 3, Ho Chi Minh City")
+  logoUrl              String?  @default("/images/vitacore-logo.svg")
+  faviconUrl           String?
+  primaryColor         String   @default("#101318")
+  accentColor          String   @default("#C8A96A")
+  currency             String   @default("VND")
+  freeShippingThreshold Float   @default(1000000) // 1,000,000 VND free shipping
+  defaultShippingFee   Float    @default(30000)   // 30,000 VND
+  taxRate              Float    @default(0.08)    // 8% VAT
+  bankAccountInfo      String?  // JSON string with bank name, account number, account holder
+  paymentSettingsJson  String?  // Enabled payment methods config
+  socialLinksJson      String?  // Facebook, Instagram, YouTube links
+  updatedAt            DateTime @updatedAt
+}
+
