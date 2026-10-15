@@ -71,8 +71,8 @@ export default function CheckoutPage() {
     e.preventDefault();
     setErrorMessage('');
 
-    if (!customerName || !customerPhone || !shippingAddress) {
-      setErrorMessage('Vui lòng điền đầy đủ họ tên, số điện thoại và địa chỉ giao hàng');
+    if (!customerName || !customerPhone || !shippingAddress || !customerEmail) {
+      setErrorMessage('Vui lòng điền đầy đủ họ tên, số điện thoại, email nhận đơn và địa chỉ giao hàng');
       return;
     }
 
@@ -243,15 +243,17 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-subtle mb-1">
-                    Email nhận thông tin đơn hàng
+                  <label className="block text-xs font-semibold text-slate-subtle mb-1 flex items-center justify-between">
+                    <span>Email nhận xác nhận đơn hàng *</span>
+                    <span className="text-[10px] text-gold font-normal">Hệ thống sẽ gửi hóa đơn điện tử về email này</span>
                   </label>
                   <input
                     type="email"
+                    required
                     value={customerEmail}
                     onChange={(e) => setCustomerEmail(e.target.value)}
                     className="w-full bg-charcoal-deep border border-charcoal-border rounded-xl p-3 text-xs text-ivory focus:outline-none focus:border-gold"
-                    placeholder="email@example.com"
+                    placeholder="vidu@gmail.com"
                   />
                 </div>
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { checkAuthFromRequest } from '@/lib/auth';
 import { logAuditAction } from '@/lib/audit';
+import { sendOrderConfirmationEmail } from '@/lib/mail';
 
 export async function GET(request: Request) {
   try {
@@ -358,6 +359,35 @@ export async function POST(request: Request) {
         totalAmount: order.totalAmount,
         paymentMethod: order.paymentMethod,
       },
+    });
+
+    // Send Order Confirmation Email to customer (async non-blocking)
+    sendOrderConfirmationEmail({
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      createdAt: order.createdAt,
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      customerPhone: order.customerPhone,
+      shippingAddress: order.shippingAddress,
+      province: order.province,
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      subtotal: order.subtotal,
+      discountAmount: order.discountAmount,
+      shippingFee: order.shippingFee,
+      totalAmount: order.totalAmount,
+      customerNotes: customerNotes || null,
+      items: verifiedOrderItems.map((item) => ({
+        productName: item.productName,
+        variantTitle: item.variantTitle,
+        productSku: item.productSku,
+        price: item.price,
+        quantity: item.quantity,
+        total: item.total,
+      })),
+    }).catch((mailErr) => {
+      console.error('[EMAIL DISPATCH ERROR]:', mailErr);
     });
 
     return NextResponse.json({
