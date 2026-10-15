@@ -39,8 +39,23 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Cabinet Grotesk", "Inter", "sans-serif"],
+        sans: [
+          "var(--font-sans)",
+          "Inter",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Arial",
+          "sans-serif",
+        ],
+        display: [
+          "var(--font-display)",
+          "var(--font-sans)",
+          "Montserrat",
+          "-apple-system",
+          "sans-serif",
+        ],
       },
       boxShadow: {
         glow: "0 0 25px -5px rgba(200, 169, 106, 0.25)",
