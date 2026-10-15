@@ -59,7 +59,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full transition-all duration-300 print:hidden">
       {/* Top Notification Bar */}
       <div className="bg-charcoal-deep border-b border-charcoal-border/50 py-1.5 px-4 text-xs text-slate-subtle">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1">

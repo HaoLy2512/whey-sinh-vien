@@ -72,9 +72,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="min-h-screen bg-charcoal-deep flex flex-col md:flex-row">
+    <div className="min-h-screen bg-charcoal-deep flex flex-col md:flex-row print:bg-white print:min-h-0">
       {/* Admin Sidebar */}
-      <aside className="w-full md:w-64 bg-charcoal border-r border-charcoal-border/80 flex flex-col justify-between p-4 flex-shrink-0">
+      <aside className="w-full md:w-64 bg-charcoal border-r border-charcoal-border/80 flex flex-col justify-between p-4 flex-shrink-0 print:hidden">
         <div>
           {/* Header */}
           <div className="pb-4 mb-4 border-b border-charcoal-border/60">
@@ -150,7 +150,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Admin Content Area */}
-      <main className="flex-1 overflow-x-hidden p-6 lg:p-8">
+      <main className="flex-1 overflow-x-hidden p-6 lg:p-8 print:p-0 print:overflow-visible print:bg-white print:m-0 print:w-full">
         {children}
       </main>
     </div>

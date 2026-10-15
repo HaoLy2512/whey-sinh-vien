@@ -13,7 +13,7 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="bg-charcoal-deep border-t border-charcoal-border/80 text-slate-subtle text-sm pt-14 pb-8">
+    <footer className="bg-charcoal-deep border-t border-charcoal-border/80 text-slate-subtle text-sm pt-14 pb-8 print:hidden">
       {/* 4 Guarantees Banner */}
       <div className="max-w-7xl mx-auto px-4 lg:px-8 pb-12 mb-12 border-b border-charcoal-border/60">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
