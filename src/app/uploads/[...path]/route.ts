@@ -69,7 +69,7 @@ export async function GET(
     }
 
     // 2. If not on disk (e.g. on Render container restart), fetch from Database
-    const dbFile = await prisma.uploadedFile.findUnique({
+    const dbFile = await (prisma as any).uploadedFile.findUnique({
       where: { filename: cleanFileName },
     });
 

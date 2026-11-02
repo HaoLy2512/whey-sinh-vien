@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     // 2. Save to database for high availability & survival across container restarts
     const mimeType = file.type || (originalExt === '.png' ? 'image/png' : 'image/jpeg');
     try {
-      await prisma.uploadedFile.upsert({
+      await (prisma as any).uploadedFile.upsert({
         where: { filename: uniqueFileName },
         create: {
           filename: uniqueFileName,

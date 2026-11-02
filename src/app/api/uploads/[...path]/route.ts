@@ -65,7 +65,7 @@ export async function GET(
       }
     }
 
-    const dbFile = await prisma.uploadedFile.findUnique({
+    const dbFile = await (prisma as any).uploadedFile.findUnique({
       where: { filename: cleanFileName },
     });
 
