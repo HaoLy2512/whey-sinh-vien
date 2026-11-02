@@ -842,6 +842,48 @@ Lưu ý: Luôn uống đủ 2.5 - 3 lít nước mỗi ngày để tối ưu kh�
     });
   }
 
+  // 14. Sync existing uploaded images into UploadedFile table
+  console.log('14. Syncing existing uploads into DB...');
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+    if (fs.existsSync(uploadsDir)) {
+      const files = fs.readdirSync(uploadsDir);
+      for (const file of files) {
+        const fullPath = path.join(uploadsDir, file);
+        const stat = fs.statSync(fullPath);
+        if (stat.isFile()) {
+          const fileData = fs.readFileSync(fullPath);
+          const ext = path.extname(file).toLowerCase();
+          let mime = 'image/png';
+          if (ext === '.jpg' || ext === '.jpeg') mime = 'image/jpeg';
+          else if (ext === '.webp') mime = 'image/webp';
+          else if (ext === '.svg') mime = 'image/svg+xml';
+          else if (ext === '.gif') mime = 'image/gif';
+
+          await prisma.uploadedFile.upsert({
+            where: { filename: file },
+            create: {
+              filename: file,
+              mimeType: mime,
+              data: fileData,
+              size: stat.size,
+            },
+            update: {
+              mimeType: mime,
+              data: fileData,
+              size: stat.size,
+            },
+          });
+        }
+      }
+      console.log(`Synced ${files.length} uploaded files to database.`);
+    }
+  } catch (syncErr) {
+    console.warn('Sync uploads warning:', syncErr.message);
+  }
+
   console.log('--- SEEDING COMPLETED SUCCESSFULLY! ---');
   console.log('Default credentials:');
   console.log('ADMIN: admin@vitacore.vn | Pass: Vitacore@2026');

@@ -400,7 +400,7 @@ export default function EditProductPage() {
                   placeholder="/images/products/whey.jpg hoặc /uploads/... hoặc https://..."
                   className="flex-1 bg-charcoal-deep border border-charcoal-border rounded-xl p-3 text-ivory focus:outline-none focus:border-gold"
                 />
-                <label className="cursor-pointer px-4 py-3 rounded-xl bg-charcoal border border-gold/40 text-gold hover:bg-gold hover:text-charcoal transition flex items-center justify-center gap-2 font-semibold text-sm whitespace-nowrap shadow-sm">
+                <label className="cursor-pointer px-5 py-3 rounded-xl bg-gold/10 border border-gold/50 text-gold hover:bg-gold hover:text-charcoal transition flex items-center justify-center gap-2 font-bold text-xs whitespace-nowrap shadow-glow">
                   <Upload className="w-4 h-4" />
                   <span>{uploading ? 'Đang tải lên...' : 'Tải ảnh từ máy tính'}</span>
                   <input
@@ -413,11 +413,29 @@ export default function EditProductPage() {
                 </label>
               </div>
               {imageUrl && (
-                <div className="mt-3 flex items-center gap-3 p-2 bg-charcoal-deep rounded-lg border border-charcoal-border/70">
-                  <img src={imageUrl} alt="Xem trước" className="w-14 h-14 object-cover rounded-md border border-gold/30" />
-                  <div className="text-xs">
-                    <p className="text-ivory font-semibold">Ảnh hiện tại:</p>
-                    <code className="text-gold break-all">{imageUrl}</code>
+                <div className="mt-3 flex items-center gap-4 p-3 bg-charcoal-deep rounded-xl border border-charcoal-border">
+                  <div className="w-16 h-16 rounded-lg bg-charcoal-card border border-gold/30 p-1 flex items-center justify-center overflow-hidden shrink-0">
+                    <img
+                      src={imageUrl}
+                      alt="Xem trước hình ảnh"
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=200&q=80';
+                      }}
+                    />
+                  </div>
+                  <div className="text-xs flex-1 min-w-0">
+                    <p className="text-ivory font-bold flex items-center gap-1.5 text-emerald-400">
+                      <span>✔ Đã tải ảnh thành công</span>
+                    </p>
+                    <code className="text-gold break-all block mt-0.5 text-[11px]">{imageUrl}</code>
+                    <button
+                      type="button"
+                      onClick={() => setImageUrl('')}
+                      className="text-rose-400 hover:underline text-[11px] mt-1 inline-block"
+                    >
+                      Xóa ảnh này
+                    </button>
                   </div>
                 </div>
               )}

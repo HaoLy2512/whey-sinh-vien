@@ -597,3 +597,14 @@ model StoreSettings {
   updatedAt            DateTime @updatedAt
 }
 
+// 14. UPLOADED ASSETS
+model UploadedFile {
+  id        String   @id @default(uuid())
+  filename  String   @unique
+  mimeType  String
+  data      Bytes
+  size      Int
+  createdAt DateTime @default(now())
+}
+
+

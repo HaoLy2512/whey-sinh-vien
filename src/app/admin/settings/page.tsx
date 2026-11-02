@@ -198,7 +198,7 @@ export default function AdminSettingsPage() {
                   placeholder="/images/logo.png hoặc /uploads/... hoặc https://..."
                   className="flex-1 bg-charcoal-deep border border-charcoal-border rounded-xl p-3 text-ivory focus:outline-none focus:border-gold"
                 />
-                <label className="cursor-pointer px-4 py-3 rounded-xl bg-charcoal border border-gold/40 text-gold hover:bg-gold hover:text-charcoal transition flex items-center justify-center gap-2 font-semibold text-sm whitespace-nowrap shadow-sm">
+                <label className="cursor-pointer px-5 py-3 rounded-xl bg-gold/10 border border-gold/50 text-gold hover:bg-gold hover:text-charcoal transition flex items-center justify-center gap-2 font-bold text-xs whitespace-nowrap shadow-glow">
                   <Upload className="w-4 h-4" />
                   <span>{uploadingLogo ? 'Đang tải lên...' : 'Tải logo từ máy tính'}</span>
                   <input
@@ -211,11 +211,22 @@ export default function AdminSettingsPage() {
                 </label>
               </div>
               {logoUrl && (
-                <div className="mt-3 flex items-center gap-3 p-2 bg-charcoal-deep rounded-lg border border-charcoal-border/70">
-                  <img src={logoUrl} alt="Logo preview" className="h-10 max-w-[120px] object-contain rounded bg-charcoal p-1 border border-gold/30" />
-                  <div className="text-xs">
-                    <p className="text-ivory font-semibold">Đường dẫn logo hiện tại:</p>
-                    <code className="text-gold break-all">{logoUrl}</code>
+                <div className="mt-3 flex items-center gap-4 p-3 bg-charcoal-deep rounded-xl border border-charcoal-border">
+                  <div className="h-12 w-28 rounded-lg bg-charcoal-card border border-gold/30 p-1 flex items-center justify-center overflow-hidden shrink-0">
+                    <img
+                      src={logoUrl}
+                      alt="Logo preview"
+                      className="h-full w-full object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/vitacore-logo.svg';
+                      }}
+                    />
+                  </div>
+                  <div className="text-xs flex-1 min-w-0">
+                    <p className="text-ivory font-bold flex items-center gap-1.5 text-emerald-400">
+                      <span>✔ Đã tải logo thành công</span>
+                    </p>
+                    <code className="text-gold break-all block mt-0.5 text-[11px]">{logoUrl}</code>
                   </div>
                 </div>
               )}

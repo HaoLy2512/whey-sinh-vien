@@ -242,7 +242,7 @@ export default function EditArticlePage() {
                   placeholder="/images/blog/... hoặc /uploads/... hoặc https://..."
                   className="flex-1 bg-charcoal-deep border border-charcoal-border rounded-xl p-3 text-ivory focus:outline-none focus:border-gold"
                 />
-                <label className="cursor-pointer px-4 py-3 rounded-xl bg-charcoal border border-gold/40 text-gold hover:bg-gold hover:text-charcoal transition flex items-center justify-center gap-2 font-semibold text-sm whitespace-nowrap shadow-sm">
+                <label className="cursor-pointer px-5 py-3 rounded-xl bg-gold/10 border border-gold/50 text-gold hover:bg-gold hover:text-charcoal transition flex items-center justify-center gap-2 font-bold text-xs whitespace-nowrap shadow-glow">
                   <Upload className="w-4 h-4" />
                   <span>{uploading ? 'Đang tải lên...' : 'Tải ảnh từ máy tính'}</span>
                   <input
@@ -255,11 +255,29 @@ export default function EditArticlePage() {
                 </label>
               </div>
               {coverImage && (
-                <div className="mt-3 flex items-center gap-3 p-2 bg-charcoal-deep rounded-lg border border-charcoal-border/70">
-                  <img src={coverImage} alt="Xem trước" className="w-20 h-14 object-cover rounded-md border border-gold/30" />
-                  <div className="text-xs">
-                    <p className="text-ivory font-semibold">Ảnh bìa hiện tại:</p>
-                    <code className="text-gold break-all">{coverImage}</code>
+                <div className="mt-3 flex items-center gap-4 p-3 bg-charcoal-deep rounded-xl border border-charcoal-border">
+                  <div className="w-24 h-16 rounded-lg bg-charcoal-card border border-gold/30 p-1 flex items-center justify-center overflow-hidden shrink-0">
+                    <img
+                      src={coverImage}
+                      alt="Xem trước ảnh bìa"
+                      className="w-full h-full object-cover rounded"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=400&q=80';
+                      }}
+                    />
+                  </div>
+                  <div className="text-xs flex-1 min-w-0">
+                    <p className="text-ivory font-bold flex items-center gap-1.5 text-emerald-400">
+                      <span>✔ Đã tải ảnh bìa thành công</span>
+                    </p>
+                    <code className="text-gold break-all block mt-0.5 text-[11px]">{coverImage}</code>
+                    <button
+                      type="button"
+                      onClick={() => setCoverImage('')}
+                      className="text-rose-400 hover:underline text-[11px] mt-1 inline-block"
+                    >
+                      Xóa ảnh này
+                    </button>
                   </div>
                 </div>
               )}

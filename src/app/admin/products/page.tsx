@@ -133,11 +133,26 @@ export default function AdminProductsPage() {
               <tbody className="divide-y divide-charcoal-border/60 text-ivory">
                 {products.map((p) => {
                   const totalStock = p.variants?.reduce((sum: number, v: any) => sum + v.inStock, 0) ?? 10;
+                  const thumb = p.images?.[0]?.url || 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=200&q=80';
                   return (
                     <tr key={p.id} className="hover:bg-charcoal-hover transition">
                       <td className="p-3.5 max-w-xs">
-                        <strong className="block text-ivory truncate">{p.name}</strong>
-                        <span className="font-mono text-[10px] text-gold">{p.sku}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-charcoal-card border border-charcoal-border p-1 flex items-center justify-center overflow-hidden shrink-0">
+                            <img
+                              src={thumb}
+                              alt={p.name}
+                              className="w-full h-full object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=200&q=80';
+                              }}
+                            />
+                          </div>
+                          <div className="truncate">
+                            <strong className="block text-ivory truncate">{p.name}</strong>
+                            <span className="font-mono text-[10px] text-gold">{p.sku}</span>
+                          </div>
+                        </div>
                       </td>
 
                       <td className="p-3.5 text-slate-subtle font-semibold">
