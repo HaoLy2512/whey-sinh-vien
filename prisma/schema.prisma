@@ -5,8 +5,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // 1. USER & AUTH
@@ -132,6 +133,8 @@ model Product {
   costPrice        Float     @default(0) // Internal COGS - staff/admin only
   goal             String    @default("Muscle Building") // Muscle Building, Recovery, Performance, General Nutrition
   isFeatured       Boolean   @default(false)
+  isHero           Boolean   @default(false)
+  pinnedAt         DateTime?
   isActive         Boolean   @default(true)
   ratingAvg        Float     @default(5.0)
   reviewCount      Int       @default(0)
