@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Package, Plus, Trash2, ArrowLeft, ShieldCheck, Sparkles, Upload, Save, Eye } from 'lucide-react';
+import PriceInput from '@/components/admin/PriceInput';
+
+const toMoney = (n: unknown) => (n ? String(Math.round(Number(n))) : '');
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -74,9 +77,9 @@ export default function EditProductPage() {
           setBrandId(p.brandId || '');
           setCategoryId(p.categoryId || '');
           setGoal(p.goal || 'Muscle Building');
-          setPrice(p.price ? String(p.price) : '');
-          setSalePrice(p.salePrice ? String(p.salePrice) : '');
-          setCostPrice(p.costPrice ? String(p.costPrice) : '');
+          setPrice(toMoney(p.price));
+          setSalePrice(toMoney(p.salePrice));
+          setCostPrice(toMoney(p.costPrice));
           setShortDescription(p.shortDescription || '');
           setDescription(p.description || '');
           setOriginCountry(p.originCountry || 'USA');
@@ -111,14 +114,14 @@ export default function EditProductPage() {
                 sku: v.sku || '',
                 flavor: v.flavor || '',
                 weight: v.weight || '',
-                price: String(v.price || ''),
-                salePrice: v.salePrice ? String(v.salePrice) : '',
-                costPrice: v.costPrice ? String(v.costPrice) : '',
+                price: toMoney(v.price),
+                salePrice: toMoney(v.salePrice),
+                costPrice: toMoney(v.costPrice),
                 inStock: String(v.inStock ?? 10),
               }))
             );
           } else {
-            setVariants([{ title: 'Tiêu chuẩn', sku: p.sku, price: p.price, inStock: '10' }]);
+            setVariants([{ title: 'Tiêu chuẩn', sku: p.sku, price: toMoney(p.price), inStock: '10' }]);
           }
         }
       } catch (err) {
@@ -474,23 +477,21 @@ export default function EditProductPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
               <label className="block text-slate-subtle mb-1 font-semibold">Giá niêm yết (VND) *</label>
-              <input
-                type="number"
+              <PriceInput
                 required
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="2000000"
+                onChange={setPrice}
+                placeholder="2.000.000"
                 className="w-full bg-charcoal-deep border border-charcoal-border rounded-xl p-3 text-ivory focus:outline-none focus:border-gold font-mono"
               />
             </div>
 
             <div>
               <label className="block text-slate-subtle mb-1 font-semibold">Giá khuyến mãi (VND)</label>
-              <input
-                type="number"
+              <PriceInput
                 value={salePrice}
-                onChange={(e) => setSalePrice(e.target.value)}
-                placeholder="1850000"
+                onChange={setSalePrice}
+                placeholder="1.500.000"
                 className="w-full bg-charcoal-deep border border-charcoal-border rounded-xl p-3 text-gold focus:outline-none focus:border-gold font-mono"
               />
             </div>
@@ -500,11 +501,10 @@ export default function EditProductPage() {
                 <ShieldCheck className="w-3.5 h-3.5 text-gold" />
                 <span>Giá vốn COGS (Bảo mật Admin)</span>
               </label>
-              <input
-                type="number"
+              <PriceInput
                 value={costPrice}
-                onChange={(e) => setCostPrice(e.target.value)}
-                placeholder="1300000"
+                onChange={setCostPrice}
+                placeholder="1.300.000"
                 className="w-full bg-charcoal-deep border border-charcoal-border rounded-xl p-3 text-slate-DEFAULT focus:outline-none focus:border-gold font-mono"
               />
             </div>
@@ -567,11 +567,10 @@ export default function EditProductPage() {
                 </div>
 
                 <div>
-                  <input
-                    type="number"
+                  <PriceInput
                     placeholder="Giá bán"
                     value={v.price}
-                    onChange={(e) => updateVariant(idx, 'price', e.target.value)}
+                    onChange={(val) => updateVariant(idx, 'price', val)}
                     className="w-full bg-charcoal border border-charcoal-border rounded-lg p-2 text-gold font-mono"
                   />
                 </div>
@@ -732,4 +731,3 @@ export default function EditProductPage() {
     </div>
   );
 }
-
