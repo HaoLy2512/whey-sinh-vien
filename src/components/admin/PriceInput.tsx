@@ -7,8 +7,17 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | 
   onChange: (raw: string) => void;
 };
 
-function toDigits(v: string | number | null | undefined) {
-  return String(v ?? "").replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+// Chuẩn hóa giá trị đang lưu trong state: bỏ phần thập phân, giữ số nguyên
+function normalize(v: string | number | null | undefined) {
+  if (v === null || v === undefined || v === "") return "";
+  if (typeof v === "number") return String(Math.round(v));
+  if (/^\d+\.\d+$/.test(v)) return String(Math.round(parseFloat(v)));
+  return v.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+}
+
+// Chuẩn hóa chữ người dùng đang gõ (đã có dấu chấm phân cách)
+function toDigits(v: string) {
+  return v.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
 }
 
 function format(digits: string) {
@@ -22,7 +31,7 @@ export default function PriceInput({ value, onChange, ...rest }: Props) {
       type="text"
       inputMode="numeric"
       autoComplete="off"
-      value={format(toDigits(value))}
+      value={format(normalize(value))}
       onChange={(e) => onChange(toDigits(e.target.value))}
     />
   );
