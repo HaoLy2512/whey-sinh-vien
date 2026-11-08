@@ -12,6 +12,7 @@ import {
   EyeOff,
   Check,
   AlertCircle,
+  Star,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
@@ -19,6 +20,7 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [pinningId, setPinningId] = useState<string | null>(null);
 
   const fetchProducts = () => {
     setLoading(true);
@@ -47,6 +49,27 @@ export default function AdminProductsPage() {
       }
     } catch {
       alert('Lỗi cập nhật trạng thái hiển thị');
+    }
+  };
+
+  const handleToggleHero = async (id: string, isHero: boolean) => {
+    setPinningId(id);
+    try {
+      const res = await fetch(`/api/admin/products/${id}/hero`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: isHero ? 'unpin' : 'pin' }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        fetchProducts();
+      } else {
+        alert(data.error || 'Không thể ghim sản phẩm lên thẻ hero');
+      }
+    } catch {
+      alert('Lỗi kết nối máy chủ');
+    } finally {
+      setPinningId(null);
     }
   };
 
@@ -134,6 +157,7 @@ export default function AdminProductsPage() {
                 {products.map((p) => {
                   const totalStock = p.variants?.reduce((sum: number, v: any) => sum + v.inStock, 0) ?? 10;
                   const thumb = p.images?.[0]?.url || 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=200&q=80';
+                  const isHero = Boolean(p.isHero);
                   return (
                     <tr key={p.id} className="hover:bg-charcoal-hover transition">
                       <td className="p-3.5 max-w-xs">
@@ -150,7 +174,15 @@ export default function AdminProductsPage() {
                           </div>
                           <div className="truncate">
                             <strong className="block text-ivory truncate">{p.name}</strong>
-                            <span className="font-mono text-[10px] text-gold">{p.sku}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[10px] text-gold">{p.sku}</span>
+                              {isHero && (
+                                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold border border-gold/50 text-gold bg-gold/10 flex items-center gap-1">
+                                  <Star className="w-2.5 h-2.5 fill-current" />
+                                  Thẻ hero
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -199,6 +231,19 @@ export default function AdminProductsPage() {
 
                       <td className="p-3.5 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleToggleHero(p.id, isHero)}
+                            disabled={pinningId === p.id}
+                            className={`p-1.5 rounded border transition disabled:opacity-50 ${
+                              isHero
+                                ? 'bg-gold/10 border-gold/50 text-gold'
+                                : 'bg-charcoal-deep border-charcoal-border text-slate-DEFAULT hover:text-gold'
+                            }`}
+                            title={isHero ? 'Bỏ ghim khỏi thẻ hero' : 'Ghim lên thẻ hero lớn ở trang chủ'}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${isHero ? 'fill-current' : ''}`} />
+                          </button>
+
                           <Link
                             href={`/admin/products/${p.id}`}
                             className="p-1.5 rounded bg-charcoal-deep border border-charcoal-border hover:text-gold text-slate-DEFAULT transition"
@@ -236,4 +281,3 @@ export default function AdminProductsPage() {
     </div>
   );
 }
-
