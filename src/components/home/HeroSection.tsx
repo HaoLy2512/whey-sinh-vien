@@ -1,159 +1,106 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck, ArrowRight, Flame } from 'lucide-react';
+import ProductImage from '@/components/products/ProductImage';
+import type { HeroProduct } from '@/lib/home-products';
+import { PROMO, formatMoneyShort } from '@/config/promo';
 
-type HeroProduct = {
-  name: string;
-  slug: string;
-  brandName: string;
-  imageUrl: string;
-  detail: string;
-};
-
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=800&q=80';
-
-const DEFAULT_HERO: HeroProduct = {
-  name: 'Gold Standard 100% Whey',
-  slug: 'on-gold-standard-100-whey',
-  brandName: 'Optimum Nutrition',
-  imageUrl: FALLBACK_IMAGE,
-  detail: '24g Protein • 5.5g BCAA',
-};
-
-export default function HeroSection() {
-  const [hero, setHero] = useState<HeroProduct>(DEFAULT_HERO);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    fetch('/api/hero', { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled) return;
-        if (data?.hero) {
-          setHero({
-            name: data.hero.name || DEFAULT_HERO.name,
-            slug: data.hero.slug || DEFAULT_HERO.slug,
-            brandName: data.hero.brandName || '',
-            imageUrl: data.hero.imageUrl || FALLBACK_IMAGE,
-            detail: data.hero.detail || '',
-          });
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setReady(true);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+export default function HeroSection({ hero }: { hero: HeroProduct | null }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-charcoal-deep via-charcoal to-charcoal-deep py-16 lg:py-24 border-b border-charcoal-border/50">
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gold/10 blur-[130px] rounded-full pointer-events-none" />
-      <div className="absolute top-10 right-10 w-72 h-72 bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none" />
+    <section className="relative overflow-hidden border-b border-charcoal-border/50 bg-gradient-to-b from-charcoal-deep via-charcoal to-charcoal-deep py-12 sm:py-16 lg:py-24">
+      <div className="pointer-events-none absolute left-1/2 top-1/4 h-[350px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold/10 blur-[130px]" />
+      <div className="pointer-events-none absolute right-10 top-10 h-72 w-72 rounded-full bg-emerald-500/10 blur-[100px]" />
 
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7 flex flex-col items-start">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold/10 border border-gold/30 text-gold-light text-xs font-bold tracking-wide uppercase mb-6 backdrop-blur-sm">
-              <Flame className="w-4 h-4 text-gold fill-current animate-pulse" />
-              <span>Tiêu chuẩn dinh dưỡng thể thao đỉnh cao 2026</span>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12">
+          <div className="flex flex-col items-start lg:col-span-7">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3.5 py-1.5 text-sm font-bold uppercase tracking-wide text-gold-light backdrop-blur-sm">
+              <Flame className="h-4 w-4 fill-current text-gold" />
+              <span>Dinh dưỡng thể thao chính hãng</span>
             </div>
 
-            <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-ivory leading-tight tracking-tight mb-6">
+            <h1 className="mb-6 font-display text-3xl font-black leading-tight tracking-tight text-ivory sm:text-5xl lg:text-6xl">
               BỨT PHÁ GIỚI HẠN <br />
               <span className="gold-gradient-text">THỂ CHẤT ĐỈNH CAO</span>
             </h1>
 
-            <p className="text-slate-subtle text-base sm:text-lg leading-relaxed max-w-2xl mb-8">
-              Hệ sinh thái thực phẩm bổ sung chuẩn quốc tế dành riêng cho vận động viên và gymer chuyên nghiệp. Cam kết 100% nhập khẩu chính hãng từ Hoa Kỳ & Châu Âu, đầy đủ tem chống giả và kiểm định chất lượng nghiêm ngặt.
+            <p className="mb-8 max-w-2xl text-base leading-relaxed text-slate-subtle sm:text-lg">
+              Thực phẩm bổ sung chuẩn quốc tế cho người tập gym. Sản phẩm nhập khẩu chính hãng, có tem chống giả,
+              hóa đơn VAT và bảng thành phần minh bạch.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto mb-10">
+            <div className="mb-10 flex w-full flex-col items-stretch gap-4 sm:w-auto sm:flex-row sm:items-center">
               <Link
                 href="/products"
-                className="px-8 py-4 rounded-xl font-display font-extrabold text-sm uppercase tracking-wider bg-gradient-to-r from-gold to-gold-dark text-charcoal hover:brightness-110 shadow-glow flex items-center justify-center gap-2 transition"
+                className="flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-8 py-4 font-display text-sm font-extrabold uppercase tracking-wider text-charcoal shadow-glow transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
               >
                 <span>Khám phá sản phẩm</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/products?featured=true"
-                className="px-8 py-4 rounded-xl font-display font-bold text-sm uppercase tracking-wider bg-charcoal-card border border-gold/40 text-ivory hover:text-gold hover:border-gold transition flex items-center justify-center gap-2"
+                href="/products?sort=bestseller"
+                className="flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-gold/40 bg-charcoal-card px-8 py-4 font-display text-sm font-bold uppercase tracking-wider text-ivory transition hover:border-gold hover:text-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
               >
                 <span>Top bán chạy</span>
               </Link>
             </div>
 
-            <div className="grid grid-cols-3 gap-6 pt-6 border-t border-charcoal-border/80 w-full max-w-lg">
+            <div className="grid w-full max-w-lg grid-cols-3 gap-4 border-t border-charcoal-border/80 pt-6 sm:gap-6">
               <div>
-                <span className="font-display font-black text-2xl sm:text-3xl text-gold">100%</span>
-                <p className="text-xs text-slate-DEFAULT mt-1">Chính hãng nhập khẩu</p>
+                <span className="font-display text-2xl font-black text-gold sm:text-3xl">100%</span>
+                <p className="mt-1 text-sm text-slate-subtle">Chính hãng nhập khẩu</p>
               </div>
               <div>
-                <span className="font-display font-black text-2xl sm:text-3xl text-ivory">50K+</span>
-                <p className="text-xs text-slate-DEFAULT mt-1">Gymer tin dùng</p>
+                <span className="font-display text-2xl font-black text-ivory sm:text-3xl">
+                  {PROMO.freeShip.threshold / 1_000_000}TR
+                </span>
+                <p className="mt-1 text-sm text-slate-subtle">Freeship từ {formatMoneyShort(PROMO.freeShip.threshold)}</p>
               </div>
               <div>
-                <span className="font-display font-black text-2xl sm:text-3xl text-emerald-400">2H</span>
-                <p className="text-xs text-slate-DEFAULT mt-1">Giao hỏa tốc nội thành</p>
+                <span className="font-display text-2xl font-black text-emerald-400 sm:text-3xl">
+                  {PROMO.delivery.expressTime.replace(' giờ', 'H')}
+                </span>
+                <p className="mt-1 text-sm text-slate-subtle">Giao nhanh {PROMO.delivery.expressAreas}</p>
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-5 relative flex items-center justify-center">
-            <div className="relative w-full max-w-md aspect-square rounded-3xl bg-gradient-to-br from-charcoal-card via-charcoal-hover to-charcoal-deep p-6 border border-gold/30 shadow-2xl flex flex-col justify-between overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gold/15 blur-3xl pointer-events-none" />
+          <div className="relative flex items-center justify-center lg:col-span-5">
+            <div className="relative flex aspect-square w-full max-w-md flex-col justify-between overflow-hidden rounded-3xl border border-gold/30 bg-gradient-to-br from-charcoal-card via-charcoal-hover to-charcoal-deep p-5 shadow-2xl sm:p-6">
+              <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 bg-gold/15 blur-3xl" />
 
-              <div className="flex items-center justify-between z-10">
-                <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  Authentic 100%
+              <div className="z-10 flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/20 px-3 py-1 text-sm font-bold text-emerald-400">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Chính hãng
                 </span>
-                <span className="text-xs font-semibold text-gold-light bg-gold/10 px-2.5 py-1 rounded-full border border-gold/20">
-                  Best Seller
+                <span className="rounded-full border border-gold/20 bg-gold/10 px-2.5 py-1 text-sm font-semibold text-gold-light">
+                  Nổi bật
                 </span>
               </div>
 
-              <div
-                className={`relative my-4 flex items-center justify-center group transition-opacity duration-500 ${
-                  ready ? 'opacity-100' : 'opacity-0'
-                }`}
-              >
-                <img
-                  src={hero.imageUrl}
-                  alt={hero.name}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = FALLBACK_IMAGE;
-                  }}
-                  className="w-64 h-64 object-contain filter drop-shadow-[0_20px_30px_rgba(0,0,0,0.8)] transform group-hover:scale-105 group-hover:rotate-1 transition-all duration-700 ease-out"
+              <div className="relative z-10 mx-auto my-3 w-full max-w-[16rem] flex-1">
+                <ProductImage
+                  src={hero?.imageUrl}
+                  alt={hero?.name ?? 'Sản phẩm nổi bật'}
+                  brandName={hero?.brandName}
+                  loading="eager"
+                  className="h-full rounded-2xl bg-transparent"
+                  imgClassName="drop-shadow-[0_20px_30px_rgba(0,0,0,0.8)]"
                 />
               </div>
 
-              <div
-                className={`bg-charcoal-deep/80 backdrop-blur-md p-4 rounded-2xl border border-charcoal-border/80 z-10 flex items-center justify-between gap-3 transition-opacity duration-500 ${
-                  ready ? 'opacity-100' : 'opacity-0'
-                }`}
-              >
+              <div className="z-10 flex items-center justify-between gap-3 rounded-2xl border border-charcoal-border/80 bg-charcoal-deep/80 p-4 backdrop-blur-md">
                 <div className="min-w-0">
-                  {hero.brandName && (
-                    <p className="text-xs text-gold font-bold uppercase tracking-wider truncate">
-                      {hero.brandName}
-                    </p>
+                  {hero?.brandName && (
+                    <p className="truncate text-sm font-bold uppercase tracking-wider text-gold">{hero.brandName}</p>
                   )}
-                  <p className="text-sm font-bold text-ivory truncate">{hero.name}</p>
-                  {hero.detail && <p className="text-xs text-slate-DEFAULT truncate">{hero.detail}</p>}
+                  <p className="truncate text-sm font-bold text-ivory">{hero?.name ?? 'Whey Protein chính hãng'}</p>
+                  {hero?.detail && <p className="truncate text-sm text-slate-subtle">{hero.detail}</p>}
                 </div>
                 <Link
-                  href={`/products/${hero.slug}`}
-                  className="px-3.5 py-2 rounded-lg bg-gold text-charcoal font-bold text-xs hover:bg-gold-light transition shadow-glow shrink-0"
+                  href={hero ? `/products/${hero.slug}` : '/products'}
+                  className="flex min-h-[44px] shrink-0 items-center rounded-lg bg-gold px-4 text-sm font-bold text-charcoal shadow-glow transition hover:bg-gold-light focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal-deep"
                 >
                   Xem ngay
                 </Link>

@@ -1,41 +1,38 @@
 import React from 'react';
 import Link from 'next/link';
+import BrandLogo from '@/components/ui/BrandLogo';
 
 const BRANDS = [
-  { name: 'Optimum Nutrition', slug: 'optimum-nutrition', origin: 'USA' },
-  { name: 'Dymatize', slug: 'dymatize', origin: 'USA' },
-  { name: 'Rule 1 Proteins', slug: 'rule-1-proteins', origin: 'USA' },
-  { name: 'MuscleTech', slug: 'muscletech', origin: 'USA' },
-  { name: 'Applied Nutrition', slug: 'applied-nutrition', origin: 'UK' },
-  { name: 'Cellucor', slug: 'cellucor', origin: 'USA' },
+  { name: 'Optimum Nutrition', slug: 'optimum-nutrition' },
+  { name: 'Dymatize', slug: 'dymatize' },
+  { name: 'Rule 1 Proteins', slug: 'rule-1-proteins' },
+  { name: 'MuscleTech', slug: 'muscletech' },
+  { name: 'Applied Nutrition', slug: 'applied-nutrition' },
+  { name: 'Cellucor', slug: 'cellucor' },
 ];
 
 export default function BrandsMarquee() {
   return (
-    <section className="py-12 bg-charcoal-deep border-b border-charcoal-border/50">
-      <div className="max-w-7xl mx-auto px-4 lg:px-8">
-        <p className="text-center text-xs font-bold text-slate-DEFAULT uppercase tracking-widest mb-6">
-          Đối tác phân phối chiến lược từ các thương hiệu dinh dưỡng toàn cầu
+    <section className="border-b border-charcoal-border/50 bg-charcoal-deep py-12 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 lg:px-8">
+        <p className="mb-8 text-center text-sm font-bold uppercase tracking-widest text-slate-subtle">
+          Thương hiệu dinh dưỡng thể thao phân phối tại cửa hàng
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 items-center">
+        <ul className="grid grid-cols-2 items-center gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {BRANDS.map((b) => (
-            <Link
-              key={b.slug}
-              href={`/products?brand=${b.slug}`}
-              className="p-4 rounded-xl bg-charcoal-card/40 border border-charcoal-border/60 hover:border-gold/50 flex flex-col items-center justify-center text-center transition group"
-            >
-              <span className="font-display font-extrabold text-sm text-ivory group-hover:text-gold transition">
-                {b.name}
-              </span>
-              <span className="text-[10px] text-gold-light mt-0.5 tracking-wider uppercase font-semibold">
-                Xuất xứ: {b.origin}
-              </span>
-            </Link>
+            <li key={b.slug}>
+              <Link
+                href={`/products?brand=${b.slug}`}
+                title={b.name}
+                className="flex min-h-[64px] items-center justify-center rounded-xl border border-charcoal-border/60 bg-charcoal-card/40 px-3 py-3 text-slate-subtle/80 transition hover:border-gold/50 hover:text-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
+                <BrandLogo name={b.name} slug={b.slug} />
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
 }
-

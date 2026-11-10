@@ -4,6 +4,7 @@ import { checkAuthFromRequest } from '@/lib/auth';
 import { logAuditAction } from '@/lib/audit';
 import { sendOrderConfirmationEmail } from '@/lib/mail';
 
+import { PROMO } from '@/config/promo';
 export async function GET(request: Request) {
   try {
     const authSession = await checkAuthFromRequest(request);
@@ -116,7 +117,7 @@ export async function POST(request: Request) {
     const storeSettings = await prisma.storeSettings.findUnique({
       where: { id: 'default' },
     });
-    const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? 1000000;
+    const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? PROMO.freeShip.threshold;
     const defaultShippingFee = storeSettings?.defaultShippingFee ?? 30000;
 
     // Verify all products, variants, and stock from DATABASE (never trust client prices)

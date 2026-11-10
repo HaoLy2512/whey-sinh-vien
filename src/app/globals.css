@@ -21,7 +21,7 @@
     font-family: var(--font-sans), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #101318;
     color: #f6f3ed;
-    overflow-x: hidden;
+    overflow-x: clip; /* clip không tạo scroll container -> position: sticky của header luôn hoạt động */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;

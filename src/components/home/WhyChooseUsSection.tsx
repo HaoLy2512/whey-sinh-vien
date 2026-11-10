@@ -1,57 +1,53 @@
 import React from 'react';
-import { ShieldCheck, Truck, Microscope, Award, FileText, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Truck, Microscope, Headphones } from 'lucide-react';
+import { PROMO, formatMoneyShort } from '@/config/promo';
 
+/** Gộp "Vì sao nên mua ở đây" và dải 4 cam kết (trước đây nằm ở footer) thành MỘT section. */
 const REASONS = [
   {
     icon: ShieldCheck,
-    title: '100% Nhập Khẩu Chính Hãng',
-    description: 'Tất cả sản phẩm đều có tem chống giả, tem phụ tiếng Việt và hóa đơn VAT theo quy định pháp luật.',
+    title: '100% chính hãng',
+    description: 'Có tem chống giả, tem phụ tiếng Việt và hóa đơn VAT theo yêu cầu.',
   },
   {
     icon: Microscope,
-    title: 'Minh Bạch Bảng Thành Phần',
-    description: 'Cam kết chuẩn hàm lượng theo nhãn công bố. Không độn amino giả (Amino Spiking), không chất cấm WADA.',
-  },
-  {
-    icon: FileText,
-    title: 'Kiểm Soát Lô Hàng & Hạn Sử Dụng',
-    description: 'Hệ thống quản lý số lô (Lot Number) và ngày sản xuất minh bạch, cam kết date xa từ 1.5 - 3 năm.',
+    title: 'Minh bạch thành phần & hạn dùng',
+    description: 'Hàm lượng theo nhãn công bố, kiểm soát số lô và ngày sản xuất, ưu tiên date xa.',
   },
   {
     icon: Truck,
-    title: 'Giao Hỏa Tốc & Bảo Quản Chuẩn Kho',
-    description: 'Kho lạnh đạt chuẩn GSP giữ nhiệt độ dưới 25°C, đảm bảo bột whey và dầu cá không bị biến tính hay ẩm mốc.',
+    title: 'Giao nhanh, miễn phí từ ' + formatMoneyShort(PROMO.freeShip.threshold),
+    description: `Giao ${PROMO.delivery.expressTime} ${PROMO.delivery.expressAreas}; tỉnh khác ${PROMO.delivery.standardTime}.`,
+  },
+  {
+    icon: Headphones,
+    title: `Đổi trả ${PROMO.returnDays} ngày & tư vấn`,
+    description: 'Đổi hoặc hoàn tiền nếu sản phẩm sai mô tả. Có hỗ trợ chọn sản phẩm theo mục tiêu.',
   },
 ];
 
 export default function WhyChooseUsSection() {
   return (
-    <section className="py-16 bg-charcoal border-b border-charcoal-border/50">
-      <div className="max-w-7xl mx-auto px-4 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-gold font-bold text-xs uppercase tracking-widest">Tiêu Chuẩn Khắt Khe</span>
-          <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-ivory mt-1">
-            VÌ SAO VẬN ĐỘNG VIÊN CHỌN VITACORE?
-          </h2>
-          <p className="text-xs text-slate-subtle mt-2">
-            Chúng tôi đặt sự an toàn cho sức khỏe và hiệu suất thể chất của khách hàng lên vị trí ưu tiên số 1
-          </p>
+    <section className="border-b border-charcoal-border/50 bg-charcoal-deep py-12 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 lg:px-8">
+        <div className="mx-auto mb-10 max-w-2xl text-center">
+          <span className="text-sm font-bold uppercase tracking-widest text-gold">Cam kết của chúng tôi</span>
+          <h2 className="mt-1 font-display text-2xl font-extrabold text-ivory sm:text-3xl">VÌ SAO NÊN MUA Ở ĐÂY?</h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {REASONS.map((r, idx) => {
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {REASONS.map((r) => {
             const Icon = r.icon;
             return (
-              <div key={idx} className="card-luxury p-6 flex flex-col items-start border-charcoal-border/80 hover:border-gold/40 transition">
-                <div className="w-12 h-12 rounded-xl bg-gold/10 text-gold flex items-center justify-center border border-gold/30 mb-4">
-                  <Icon className="w-6 h-6" />
+              <div
+                key={r.title}
+                className="card-luxury flex flex-col items-start border-charcoal-border/80 p-6 transition hover:border-gold/40"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-gold/30 bg-gold/10 text-gold">
+                  <Icon className="h-6 w-6" />
                 </div>
-                <h3 className="font-display font-bold text-base text-ivory mb-2">
-                  {r.title}
-                </h3>
-                <p className="text-xs text-slate-subtle leading-relaxed">
-                  {r.description}
-                </p>
+                <h3 className="mb-2 font-display text-base font-bold text-ivory">{r.title}</h3>
+                <p className="text-sm leading-relaxed text-slate-subtle">{r.description}</p>
               </div>
             );
           })}
@@ -60,4 +56,3 @@ export default function WhyChooseUsSection() {
     </section>
   );
 }
-

@@ -610,4 +610,10 @@ model UploadedFile {
   createdAt DateTime @default(now())
 }
 
-
+// 12. NEWSLETTER (đăng ký nhận voucher từ trang chủ)
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  source    String   @default("HOME")
+  createdAt DateTime @default(now())
+}

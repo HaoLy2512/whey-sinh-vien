@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
+import { PROMO } from '@/config/promo';
 export interface CartItemType {
   productId: string;
   variantId?: string | null;
@@ -42,7 +43,7 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const FREE_SHIPPING_THRESHOLD = 1000000; // 1,000,000 VND
+const FREE_SHIPPING_THRESHOLD: number = PROMO.freeShip.threshold; // đọc từ config/promo.ts
 const DEFAULT_SHIPPING_FEE = 30000;
 
 export function CartProvider({ children }: { children: React.ReactNode }) {

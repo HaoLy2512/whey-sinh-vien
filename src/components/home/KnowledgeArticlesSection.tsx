@@ -50,11 +50,11 @@ export default async function KnowledgeArticlesSection() {
   }
 
   return (
-    <section className="py-16 bg-charcoal-deep border-b border-charcoal-border/50">
+    <section className="py-12 sm:py-16 bg-charcoal-deep border-b border-charcoal-border/50">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-gold text-xs font-bold uppercase tracking-widest mb-1">
+            <div className="inline-flex items-center gap-1.5 text-gold text-sm font-bold uppercase tracking-widest mb-1">
               <BookOpen className="w-3.5 h-3.5" />
               <span>Kho Tri Thức Chuyên Sâu</span>
             </div>
@@ -64,7 +64,7 @@ export default async function KnowledgeArticlesSection() {
           </div>
           <Link
             href="/blog"
-            className="text-xs font-bold text-gold-light hover:text-gold flex items-center gap-1.5 transition"
+            className="text-sm font-bold text-gold-light hover:text-gold flex items-center gap-1.5 transition"
           >
             <span>Đọc tất cả bài viết</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -88,11 +88,11 @@ export default async function KnowledgeArticlesSection() {
 
               <div className="p-6 flex flex-col justify-between flex-1">
                 <div>
-                  <div className="flex items-center justify-between text-xs mb-2">
-                    <span className="text-gold font-bold text-[11px] uppercase tracking-wider">
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-gold font-bold text-sm uppercase tracking-wider">
                       {art.category}
                     </span>
-                    <span className="text-slate-DEFAULT text-[11px] flex items-center gap-1">
+                    <span className="text-slate-DEFAULT text-sm flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {art.readTime}
                     </span>
@@ -102,12 +102,12 @@ export default async function KnowledgeArticlesSection() {
                     {art.title}
                   </h3>
 
-                  <p className="text-xs text-slate-subtle mt-2 line-clamp-3 leading-relaxed">
+                  <p className="text-sm text-slate-subtle mt-2 line-clamp-3 leading-relaxed">
                     {art.excerpt}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-charcoal-border/50 flex items-center text-xs font-bold text-gold-light group-hover:text-gold gap-1">
+                <div className="mt-4 pt-3 border-t border-charcoal-border/50 flex items-center text-sm font-bold text-gold-light group-hover:text-gold gap-1">
                   <span>Đọc tiếp</span>
                   <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                 </div>

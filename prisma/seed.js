@@ -610,7 +610,7 @@ async function main() {
     }
   }
 
-  // 8. Coupons
+  // 8. Coupons (giá trị hiển thị ở storefront lấy từ src/config/promo.ts - giữ đồng bộ)
   console.log('8. Seeding Coupons...');
   await prisma.coupon.upsert({
     where: { code: 'VITACORE10' },
@@ -641,6 +641,25 @@ async function main() {
       minOrderValue: 500000,
       usageLimit: 300,
       usageCount: 8,
+      isActive: true,
+      startDate: new Date('2024-01-01'),
+      endDate: new Date('2027-12-31'),
+    },
+  });
+
+  // Voucher đơn đầu tiên (đồng bộ với src/config/promo.ts -> PROMO.firstOrderVoucher)
+  await prisma.coupon.upsert({
+    where: { code: 'WELCOME100' },
+    update: {},
+    create: {
+      code: 'WELCOME100',
+      description: 'Voucher 100.000đ cho đơn hàng đầu tiên',
+      discountType: 'FIXED_AMOUNT',
+      discountValue: 100000,
+      minOrderValue: 0,
+      usageLimit: 10000,
+      userLimit: 1,
+      usageCount: 0,
       isActive: true,
       startDate: new Date('2024-01-01'),
       endDate: new Date('2027-12-31'),

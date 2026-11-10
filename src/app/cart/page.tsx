@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { formatCurrency } from '@/lib/utils';
+import { PROMO } from '@/config/promo';
 import {
   Trash2,
   ArrowRight,
@@ -224,7 +225,7 @@ export default function CartPage() {
                   <form onSubmit={handleApplyCoupon} className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="Nhập mã (VD: VITACORE10)"
+                      placeholder={`Nhập mã (VD: ${PROMO.percentVoucher.code})`}
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value)}
                       className="flex-1 bg-charcoal-deep border border-charcoal-border rounded-xl px-3 py-2 text-xs text-ivory uppercase font-mono focus:outline-none focus:border-gold"

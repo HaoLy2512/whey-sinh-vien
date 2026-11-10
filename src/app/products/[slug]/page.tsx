@@ -21,6 +21,7 @@ import { formatCurrency } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 
+import { PROMO, formatMoneyShort } from '@/config/promo';
 export default function ProductDetailPage() {
   const params = useParams();
   const slug = params?.slug as string;
@@ -403,14 +404,14 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Trust Assurances */}
-            <div className="grid grid-cols-3 gap-3 pt-6 mt-8 border-t border-charcoal-border/50 text-slate-subtle text-[11px]">
+            <div className="grid grid-cols-3 gap-3 pt-6 mt-8 border-t border-charcoal-border/50 text-slate-subtle text-sm">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-gold flex-shrink-0" />
                 <span>100% Chính hãng</span>
               </div>
               <div className="flex items-center gap-2">
                 <Truck className="w-4 h-4 text-gold flex-shrink-0" />
-                <span>Freeship từ 1.000.000₫</span>
+                <span>Freeship từ {formatMoneyShort(PROMO.freeShip.threshold)}</span>
               </div>
               <div className="flex items-center gap-2">
                 <RotateCcw className="w-4 h-4 text-gold flex-shrink-0" />

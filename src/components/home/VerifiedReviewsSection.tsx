@@ -1,91 +1,44 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
-import { Star, CheckCircle, Quote } from 'lucide-react';
-
-interface ReviewItem {
-  id: string;
-  rating: number;
-  title: string | null;
-  comment: string;
-  verifiedPurchase: boolean;
-  createdAt: string;
-  user: { fullName: string };
-  product: { name: string; slug: string };
-}
+import React from 'react';
+import { Star, Quote } from 'lucide-react';
+import { testimonials, TESTIMONIALS_ARE_ILLUSTRATIVE } from '@/data/testimonials';
 
 export default function VerifiedReviewsSection() {
-  const [reviews, setReviews] = useState<ReviewItem[]>([]);
-
-  useEffect(() => {
-    fetch('/api/reviews')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.reviews) setReviews(data.reviews.slice(0, 3));
-      })
-      .catch(() => {});
-  }, []);
-
-  if (reviews.length === 0) return null;
-
   return (
-    <section className="py-16 bg-charcoal border-b border-charcoal-border/50">
-      <div className="max-w-7xl mx-auto px-4 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-gold font-bold text-xs uppercase tracking-widest">Đánh Giá Thực Tế</span>
-          <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-ivory mt-1">
-            TRẢI NGHIỆM TỪ KHÁCH HÀNG THỰC TẾ
-          </h2>
-          <p className="text-xs text-slate-subtle mt-2">
-            100% đánh giá được gửi từ khách hàng đã mua và xác thực đơn hàng thành công
-          </p>
+    <section className="border-b border-charcoal-border/50 bg-charcoal py-12 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 lg:px-8">
+        <div className="mx-auto mb-10 max-w-2xl text-center">
+          <span className="text-sm font-bold uppercase tracking-widest text-gold">Khách hàng nói gì</span>
+          <h2 className="mt-1 font-display text-2xl font-extrabold text-ivory sm:text-3xl">TRẢI NGHIỆM TỪ NGƯỜI DÙNG</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {reviews.map((rev) => (
-            <div key={rev.id} className="card-luxury p-6 flex flex-col justify-between border-charcoal-border/80 relative">
-              <Quote className="absolute top-4 right-4 w-8 h-8 text-charcoal-border/40 pointer-events-none" />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {testimonials.map((t) => (
+            <figure key={t.id} className="card-luxury relative flex flex-col justify-between border-charcoal-border/80 p-6">
+              <Quote className="pointer-events-none absolute right-4 top-4 h-8 w-8 text-charcoal-border/60" />
 
               <div>
-                {/* Rating stars */}
-                <div className="flex items-center gap-1 text-amber-400 mb-3">
+                <div className="mb-3 flex items-center gap-1 text-amber-400" aria-label={`${t.rating} trên 5 sao`}>
                   {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${i < rev.rating ? 'fill-current' : 'text-zinc-700'}`}
-                    />
+                    <Star key={i} className={`h-4 w-4 ${i < t.rating ? 'fill-current' : 'text-zinc-700'}`} />
                   ))}
                 </div>
+                <blockquote className="text-sm leading-relaxed text-ivory-muted">“{t.quote}”</blockquote>
+              </div>
 
-                {rev.title && (
-                  <h4 className="font-bold text-sm text-ivory mb-2">
-                    {rev.title}
-                  </h4>
-                )}
-
-                <p className="text-xs text-slate-subtle leading-relaxed italic">
-                  "{rev.comment}"
+              <figcaption className="mt-6 border-t border-charcoal-border/60 pt-4">
+                <p className="text-sm font-bold text-ivory">
+                  {t.name} <span className="font-normal text-slate-subtle">· {t.city}</span>
                 </p>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-charcoal-border/60 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-xs text-ivory">{rev.user.fullName}</p>
-                  <p className="text-[10px] text-gold-light truncate max-w-[180px]">{rev.product.name}</p>
-                </div>
-
-                {rev.verifiedPurchase && (
-                  <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                    <CheckCircle className="w-3 h-3" />
-                    Đã mua hàng
-                  </span>
-                )}
-              </div>
-            </div>
+                <p className="truncate text-sm text-gold-light">{t.product}</p>
+              </figcaption>
+            </figure>
           ))}
         </div>
+
+        {TESTIMONIALS_ARE_ILLUSTRATIVE && (
+          <p className="mt-6 text-center text-sm text-slate-subtle">Đánh giá minh họa</p>
+        )}
       </div>
     </section>
   );
 }
-

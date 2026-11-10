@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { User, Mail, Lock, Phone, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react';
 
+import { PROMO, formatMoneyShort } from '@/config/promo';
 export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
@@ -56,7 +57,7 @@ export default function RegisterPage() {
             ĐĂNG KÝ THÀNH VIÊN
           </h2>
           <p className="text-xs text-slate-subtle mt-1">
-            Gia nhập cộng đồng gymer & nhận ngay ưu đãi 100.000₫
+            Tạo tài khoản và nhận voucher {formatMoneyShort(PROMO.firstOrderVoucher.amount)} cho đơn đầu tiên
           </p>
         </div>
 

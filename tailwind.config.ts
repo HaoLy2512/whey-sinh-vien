@@ -34,7 +34,7 @@ const config: Config = {
         },
         slate: {
           subtle: "#8A94A0",
-          DEFAULT: "#68717D",
+          DEFAULT: "#859099",
           dark: "#4B535E",
         },
       },

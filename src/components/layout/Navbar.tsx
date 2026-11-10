@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
+import { PROMO, formatMoneyShort } from '@/config/promo';
+import { siteConfig } from '@/config/site';
 import {
   ShoppingBag,
   Heart,
@@ -59,30 +61,38 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full transition-all duration-300 print:hidden">
-      {/* Top Notification Bar */}
-      <div className="bg-charcoal-deep border-b border-charcoal-border/50 py-1.5 px-4 text-xs text-slate-subtle">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1">
-          <div className="flex items-center gap-4">
+    <>
+      {/* Top Notification Bar: nằm ở đầu trang, cuộn đi cùng nội dung (không sticky để đỡ chiếm chỗ trên mobile) */}
+      <div className="border-b border-charcoal-border/50 bg-charcoal-deep px-4 py-2 text-sm text-slate-subtle print:hidden">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-1 sm:flex-row">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:justify-start">
             <span className="flex items-center gap-1.5 text-gold-light">
-              <ShieldCheck className="w-3.5 h-3.5 text-gold" />
-              100% Nhập khẩu chính hãng & có hóa đơn VAT
+              <ShieldCheck className="h-3.5 w-3.5 text-gold" />
+              100% nhập khẩu chính hãng
             </span>
-            <span className="hidden md:inline text-zinc-600">|</span>
-            <span className="hidden md:inline">Freeship toàn quốc đơn từ 1.000.000đ</span>
+            <span className="hidden text-zinc-600 md:inline">|</span>
+            <span className="hidden md:inline">Freeship đơn từ {formatMoneyShort(PROMO.freeShip.threshold)}</span>
           </div>
           <div className="flex items-center gap-4">
-            <a href="tel:19008899" className="flex items-center gap-1 hover:text-gold transition">
-              <PhoneCall className="w-3 h-3 text-gold" /> Hotline: 1900 8899
-            </a>
+            {siteConfig.contact.hotline && siteConfig.contact.hotlineHref ? (
+              <a
+                href={`tel:${siteConfig.contact.hotlineHref}`}
+                className="flex items-center gap-1 transition hover:text-gold"
+              >
+                <PhoneCall className="h-3 w-3 text-gold" /> Hotline: {siteConfig.contact.hotline}
+              </a>
+            ) : (
+              siteConfig.isDemo && <span>{siteConfig.demoNotice}</span>
+            )}
             <span className="text-zinc-600">|</span>
-            <Link href="/support" className="hover:text-gold transition">
+            <Link href="/support" className="transition hover:text-gold">
               Tư vấn dinh dưỡng
             </Link>
           </div>
         </div>
       </div>
 
+    <header className="sticky top-0 z-50 w-full transition-all duration-300 print:hidden">
       {/* Main Navigation Glass Bar */}
       <nav className="nav-glass px-4 lg:px-8 py-3.5">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -99,14 +109,14 @@ export default function Navbar() {
               <span className="font-display font-extrabold tracking-wider text-base sm:text-lg text-ivory group-hover:text-gold transition">
                 {storeName}
               </span>
-              <span className="text-[10px] uppercase tracking-widest text-gold-light font-medium -mt-1">
+              <span className="text-sm uppercase tracking-widest text-gold-light font-medium -mt-1">
                 Luxury Nutrition
               </span>
             </div>
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden lg:flex items-center gap-6 text-xs uppercase tracking-wider font-semibold text-slate-subtle ml-2">
+          <div className="hidden lg:flex items-center gap-6 text-sm uppercase tracking-wider font-semibold text-slate-subtle ml-2">
             <Link href="/products" className="hover:text-gold text-ivory transition">
               Sản phẩm
             </Link>
@@ -158,9 +168,9 @@ export default function Navbar() {
               className="flex items-center gap-2 px-3 py-2 rounded-full border border-charcoal-border hover:border-gold/60 bg-charcoal-card hover:bg-charcoal-hover text-ivory transition group relative"
             >
               <ShoppingBag className="w-4 h-4 text-gold group-hover:scale-110 transition" />
-              <span className="text-xs font-semibold hidden sm:inline">Giỏ hàng</span>
+              <span className="text-sm font-semibold hidden sm:inline">Giỏ hàng</span>
               {totalItems > 0 && (
-                <span className="bg-gold text-charcoal font-bold text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center shadow-glow">
+                <span className="bg-gold text-charcoal font-bold text-sm px-1.5 py-0.5 rounded-full min-w-[20px] text-center shadow-glow">
                   {totalItems}
                 </span>
               )}
@@ -174,10 +184,10 @@ export default function Navbar() {
                     onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                     className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-2 rounded-full border border-charcoal-border bg-charcoal-card hover:border-gold/40 transition text-sm"
                   >
-                    <div className="w-7 h-7 rounded-full bg-gold/20 text-gold flex items-center justify-center font-bold text-xs uppercase border border-gold/40">
+                    <div className="w-7 h-7 rounded-full bg-gold/20 text-gold flex items-center justify-center font-bold text-sm uppercase border border-gold/40">
                       {user.fullName.charAt(0)}
                     </div>
-                    <span className="hidden sm:inline font-medium text-xs max-w-[100px] truncate text-ivory">
+                    <span className="hidden sm:inline font-medium text-sm max-w-[100px] truncate text-ivory">
                       {user.fullName}
                     </span>
                     <ChevronDown className="w-3.5 h-3.5 text-slate-DEFAULT hidden sm:inline" />
@@ -191,8 +201,8 @@ export default function Navbar() {
                     >
                       <div className="px-4 py-2.5 border-b border-charcoal-border/80">
                         <p className="font-semibold text-ivory truncate">{user.fullName}</p>
-                        <p className="text-xs text-slate-DEFAULT truncate">{user.email}</p>
-                        <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-gold/10 text-gold border border-gold/30">
+                        <p className="text-sm text-slate-DEFAULT truncate">{user.email}</p>
+                        <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-bold tracking-wider uppercase bg-gold/10 text-gold border border-gold/30">
                           <Sparkles className="w-2.5 h-2.5" /> Vai trò: {user.role}
                         </div>
                       </div>
@@ -279,7 +289,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-2">
                   <Link
                     href="/auth/login"
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-ivory hover:text-gold border border-charcoal-border hover:border-gold/40 bg-charcoal-card transition"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-semibold text-ivory hover:text-gold border border-charcoal-border hover:border-gold/40 bg-charcoal-card transition"
                   >
                     <UserIcon className="w-3.5 h-3.5" />
                     Đăng nhập
@@ -360,6 +370,7 @@ export default function Navbar() {
         )}
       </nav>
     </header>
+    </>
   );
 }
 

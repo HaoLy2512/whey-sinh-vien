@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Star, ShoppingBag, Heart, Check, Sparkles } from 'lucide-react';
+import { Star, ShoppingBag, Heart, Check, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
+import { goalLabel } from '@/config/home';
+import ProductImage from '@/components/products/ProductImage';
 
 export interface ProductCardProps {
   id: string;
@@ -29,6 +31,8 @@ export interface ProductCardProps {
   }>;
 }
 
+type AddState = 'idle' | 'loading' | 'added';
+
 export default function ProductCard({
   id,
   name,
@@ -43,13 +47,20 @@ export default function ProductCard({
   variants = [],
 }: ProductCardProps) {
   const { addToCart } = useCart();
-  const [isAdded, setIsAdded] = useState(false);
+  const [addState, setAddState] = useState<AddState>('idle');
   const [isFavorited, setIsFavorited] = useState(false);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  const imageUrl = images[0]?.url || 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=800&q=80';
+  useEffect(() => {
+    const pending = timers.current;
+    return () => pending.forEach(clearTimeout);
+  }, []);
+
+  const imageUrl = images.find((i) => i.isThumbnail)?.url || images[0]?.url || '';
   const effectivePrice = salePrice || price;
-  const hasDiscount = salePrice && salePrice < price;
-  const discountPercent = hasDiscount ? Math.round(((price - salePrice) / price) * 100) : 0;
+  const hasDiscount = !!salePrice && salePrice < price;
+  const discountPercent = hasDiscount ? Math.round(((price - (salePrice as number)) / price) * 100) : 0;
+  const goalText = goalLabel(goal);
 
   // Determine stock from variants or default
   const totalStock = variants.length > 0 ? variants.reduce((sum, v) => sum + v.inStock, 0) : 10;
@@ -59,24 +70,32 @@ export default function ProductCard({
     e.preventDefault();
     e.stopPropagation();
 
-    if (isOutOfStock) return;
+    if (isOutOfStock || addState !== 'idle') return;
 
     const selectedVariant = variants.length > 0 ? variants[0] : null;
 
-    addToCart({
-      productId: id,
-      variantId: selectedVariant?.id || null,
-      productName: name,
-      productSlug: slug,
-      productImage: imageUrl,
-      variantTitle: selectedVariant?.title || null,
-      price: selectedVariant ? (selectedVariant.salePrice || selectedVariant.price) : effectivePrice,
-      originalPrice: selectedVariant?.price || price,
-      inStock: selectedVariant?.inStock || totalStock,
-    }, 1);
-
-    setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 1500);
+    setAddState('loading');
+    addToCart(
+      {
+        productId: id,
+        variantId: selectedVariant?.id || null,
+        productName: name,
+        productSlug: slug,
+        productImage: imageUrl,
+        variantTitle: selectedVariant?.title || null,
+        price: selectedVariant ? selectedVariant.salePrice || selectedVariant.price : effectivePrice,
+        originalPrice: selectedVariant?.price || price,
+        inStock: selectedVariant?.inStock || totalStock,
+      },
+      1
+    );
+    // Phản hồi ngắn để người dùng thấy nút đã nhận thao tác
+    timers.current.push(
+      setTimeout(() => {
+        setAddState('added');
+        timers.current.push(setTimeout(() => setAddState('idle'), 1500));
+      }, 350)
+    );
   };
 
   const handleToggleWishlist = async (e: React.MouseEvent) => {
@@ -98,124 +117,129 @@ export default function ProductCard({
     }
   };
 
+  const buttonBase =
+    'mt-4 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal-card';
+
   return (
-    <div className="group card-luxury flex flex-col justify-between overflow-hidden relative">
-      {/* Badges Overlay */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 items-start">
+    <div className="group card-luxury relative flex flex-col justify-between overflow-hidden">
+      {/* Badges: giảm giá = vàng thương hiệu, nhãn danh mục = trung tính */}
+      <div className="absolute left-3 top-3 z-10 flex flex-col items-start gap-1.5">
         {hasDiscount && (
-          <span className="bg-rose-600/90 text-white font-extrabold text-[11px] px-2 py-0.5 rounded-md shadow-md tracking-wider">
+          <span className="rounded-md bg-gold px-2 py-0.5 text-sm font-extrabold tracking-wide text-charcoal shadow-md">
             -{discountPercent}%
           </span>
         )}
-        {goal && (
-          <span className="bg-emerald-950/80 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-sm">
-            {goal}
+        {goalText && (
+          <span className="rounded-md border border-charcoal-border bg-charcoal-deep/85 px-2 py-0.5 text-sm font-semibold text-ivory-muted backdrop-blur-sm">
+            {goalText}
           </span>
         )}
       </div>
 
-      {/* Wishlist Button */}
+      {/* Wishlist Button (vùng bấm 44px) */}
       <button
+        type="button"
         onClick={handleToggleWishlist}
-        className={`absolute top-3 right-3 z-10 p-2 rounded-full backdrop-blur-md transition ${
+        className={`absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-md transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
           isFavorited
-            ? 'bg-rose-500/20 text-rose-500 border border-rose-500/40'
-            : 'bg-charcoal-deep/60 text-slate-subtle hover:text-rose-400 border border-charcoal-border'
+            ? 'border border-rose-500/40 bg-rose-500/20 text-rose-500'
+            : 'border border-charcoal-border bg-charcoal-deep/60 text-slate-subtle hover:text-rose-400'
         }`}
         title="Lưu vào yêu thích"
+        aria-label="Lưu vào yêu thích"
+        aria-pressed={isFavorited}
       >
-        <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current text-rose-500' : ''}`} />
+        <Heart className={`h-4 w-4 ${isFavorited ? 'fill-current text-rose-500' : ''}`} />
       </button>
 
       {/* Product Image */}
-      <Link href={`/products/${slug}`} className="block relative aspect-square overflow-hidden bg-charcoal-deep/50 p-4">
-        <img
+      <Link href={`/products/${slug}`} className="block" aria-label={name}>
+        <ProductImage
           src={imageUrl}
           alt={name}
-          className="w-full h-full object-contain object-center transform group-hover:scale-105 transition-transform duration-500 ease-out"
-          loading="lazy"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=800&q=80';
-          }}
+          brandName={brand?.name}
+          imgClassName="transform transition-transform duration-500 ease-out group-hover:scale-105"
         />
       </Link>
 
       {/* Product Content */}
-      <div className="p-4 flex flex-col flex-1 justify-between">
+      <div className="flex flex-1 flex-col justify-between p-4">
         <div>
-          {/* Brand & Ratings */}
-          <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-gold-light font-semibold uppercase tracking-wider text-[11px] truncate max-w-[140px]">
+          <div className="mb-1.5 flex items-center justify-between gap-2 text-sm">
+            <span className="max-w-[140px] truncate font-semibold uppercase tracking-wider text-gold-light">
               {brand?.name || 'VITACORE'}
             </span>
             <div className="flex items-center gap-1 text-amber-400">
-              <Star className="w-3.5 h-3.5 fill-current" />
-              <span className="font-bold text-ivory text-xs">{ratingAvg.toFixed(1)}</span>
-              <span className="text-slate-DEFAULT text-[10px]">({reviewCount})</span>
+              <Star className="h-3.5 w-3.5 fill-current" />
+              <span className="font-bold text-ivory">{ratingAvg.toFixed(1)}</span>
+              <span className="text-slate-subtle">({reviewCount})</span>
             </div>
           </div>
 
-          {/* Title */}
-          <Link href={`/products/${slug}`} className="block group-hover:text-gold transition">
-            <h3 className="font-semibold text-ivory text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
+          <Link href={`/products/${slug}`} className="block transition group-hover:text-gold">
+            <h3 className="line-clamp-2 min-h-[2.75rem] text-base font-semibold leading-snug text-ivory">
               {name}
             </h3>
           </Link>
 
-          {/* Variants info snippet */}
           {variants.length > 0 && (
-            <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               {variants.slice(0, 2).map((v) => (
-                <span key={v.id} className="text-[10px] text-slate-subtle bg-charcoal-deep px-1.5 py-0.5 rounded border border-charcoal-border/50">
+                <span
+                  key={v.id}
+                  className="max-w-full truncate rounded border border-charcoal-border/50 bg-charcoal-deep px-1.5 py-0.5 text-sm text-slate-subtle"
+                >
                   {v.flavor || v.weight || v.title}
                 </span>
               ))}
               {variants.length > 2 && (
-                <span className="text-[10px] text-slate-DEFAULT">+{variants.length - 2} vị</span>
+                <span className="text-sm text-slate-subtle">+{variants.length - 2} loại</span>
               )}
             </div>
           )}
         </div>
 
-        {/* Pricing & Add To Cart Button */}
-        <div className="mt-4 pt-3 border-t border-charcoal-border/60 flex items-center justify-between gap-2">
-          <div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-display font-extrabold text-base text-gold">
-                {formatCurrency(effectivePrice)}
-              </span>
-            </div>
+        <div>
+          <div className="mt-4 flex flex-wrap items-baseline gap-x-2 border-t border-charcoal-border/60 pt-3">
+            <span className="font-display text-lg font-extrabold text-gold">
+              {formatCurrency(effectivePrice)}
+            </span>
             {hasDiscount && (
-              <span className="text-xs text-slate-DEFAULT line-through">
-                {formatCurrency(price)}
-              </span>
+              <span className="text-sm text-slate-subtle line-through">{formatCurrency(price)}</span>
             )}
           </div>
 
-          {/* Quick Add Button */}
           <button
+            type="button"
             onClick={handleQuickAdd}
-            disabled={isOutOfStock}
-            className={`p-2.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition ${
+            disabled={isOutOfStock || addState === 'loading'}
+            aria-live="polite"
+            className={`${buttonBase} ${
               isOutOfStock
-                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700'
-                : isAdded
-                ? 'bg-emerald-600 text-white shadow-glow'
-                : 'bg-gold hover:bg-gold-light text-charcoal shadow-glow'
+                ? 'cursor-not-allowed border border-zinc-700 bg-zinc-800 text-zinc-400'
+                : addState === 'added'
+                ? 'bg-emerald-600 text-white'
+                : addState === 'loading'
+                ? 'cursor-wait bg-gold/80 text-charcoal'
+                : 'bg-gold text-charcoal shadow-glow hover:bg-gold-light active:scale-[0.98]'
             }`}
-            title={isOutOfStock ? 'Hết hàng' : 'Thêm nhanh vào giỏ'}
           >
             {isOutOfStock ? (
-              <span className="text-[10px] px-1">Hết hàng</span>
-            ) : isAdded ? (
+              <span>Hết hàng</span>
+            ) : addState === 'loading' ? (
               <>
-                <Check className="w-4 h-4" />
-                <span className="hidden sm:inline">Đã thêm</span>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Đang thêm...</span>
+              </>
+            ) : addState === 'added' ? (
+              <>
+                <Check className="h-4 w-4" />
+                <span>Đã thêm vào giỏ</span>
               </>
             ) : (
               <>
-                <ShoppingBag className="w-4 h-4" />
-                <span className="hidden sm:inline">Mua</span>
+                <ShoppingBag className="h-4 w-4" />
+                <span>Thêm vào giỏ</span>
               </>
             )}
           </button>

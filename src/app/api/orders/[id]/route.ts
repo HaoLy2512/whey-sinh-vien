@@ -1,59 +1,82 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { checkAuthFromRequest } from '@/lib/auth';
+import { logAuditAction } from '@/lib/audit';
 
-export async function GET(
+export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const authSession = await checkAuthFromRequest(request);
-    const orderId = params.id;
+    if (!authSession || (authSession.role !== 'ADMIN' && authSession.role !== 'STAFF')) {
+      return NextResponse.json({ message: 'Không có quyền cập nhật trạng thái đơn hàng' }, { status: 403 });
+    }
 
-    const order = await prisma.order.findFirst({
-      where: {
-        OR: [{ id: orderId }, { orderNumber: orderId }],
-      },
-      include: {
-        items: true,
-        statusHistory: { orderBy: { createdAt: 'desc' } },
-        shipments: true,
-        payments: true,
-      },
+    const { orderStatus, paymentStatus, note, trackingNumber } = await request.json();
+
+    const order = await prisma.order.findUnique({
+      where: { id: params.id },
     });
 
     if (!order) {
       return NextResponse.json({ message: 'Không tìm thấy đơn hàng' }, { status: 404 });
     }
 
-    const isStaffOrAdmin = authSession?.role === 'ADMIN' || authSession?.role === 'STAFF';
+    const updateData: any = {};
+    if (orderStatus) updateData.orderStatus = orderStatus;
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    if (trackingNumber) updateData.trackingNumber = trackingNumber;
 
-    // Strict access control: if not staff/admin, must be the owner of the order
-    if (!isStaffOrAdmin) {
-      if (!authSession || (order.userId && order.userId !== authSession.userId)) {
-        return NextResponse.json({ message: 'Bạn không có quyền xem đơn hàng này' }, { status: 403 });
-      }
-    }
+    const updatedOrder = await prisma.$transaction(async (tx) => {
+      const ord = await tx.order.update({
+        where: { id: params.id },
+        data: updateData,
+      });
 
-    // Redact costPrice for users
-    const sanitizedItems = order.items.map((item) => {
-      if (!isStaffOrAdmin) {
-        const { costPrice, ...rest } = item;
-        return rest;
+      if (orderStatus && orderStatus !== order.orderStatus) {
+        await tx.orderStatusHistory.create({
+          data: {
+            orderId: ord.id,
+            previousStatus: order.orderStatus,
+            newStatus: orderStatus,
+            note: note || `Cập nhật trạng thái sang ${orderStatus}`,
+            changedBy: authSession.role,
+          },
+        });
+
+        // If delivered, mark shipment as delivered
+        if (orderStatus === 'DELIVERED') {
+          await tx.shipment.updateMany({
+            where: { orderId: ord.id },
+            data: { status: 'DELIVERED', deliveredAt: new Date() },
+          });
+        }
       }
-      return item;
+
+      return ord;
     });
 
-    return NextResponse.json({
-      success: true,
-      order: {
-        ...order,
-        items: sanitizedItems,
+    await logAuditAction({
+      userId: authSession.userId,
+      userEmail: authSession.email,
+      userRole: authSession.role,
+      action: 'STATUS_CHANGE',
+      entity: 'ORDER',
+      entityId: order.id,
+      details: {
+        orderNumber: order.orderNumber,
+        fromStatus: order.orderStatus,
+        toStatus: orderStatus,
+        paymentStatus,
+        note,
       },
     });
+
+    return NextResponse.json({ success: true, order: updatedOrder });
   } catch (error) {
-    console.error('Fetch order detail error:', error);
-    return NextResponse.json({ message: 'Lỗi tải chi tiết đơn hàng' }, { status: 500 });
+    console.error('Order status update error:', error);
+    return NextResponse.json({ message: 'Lỗi cập nhật trạng thái đơn hàng' }, { status: 500 });
   }
 }
 

@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck, RotateCcw, Truck, Lock, ChevronRight } from 'lucide-react';
 
+import { PROMO, formatMoneyShort } from '@/config/promo';
 export default function PoliciesPage() {
   return (
     <div className="bg-charcoal min-h-screen py-10">
@@ -72,7 +73,7 @@ export default function PoliciesPage() {
             <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-DEFAULT">
               <li><strong>Nội thành TP.HCM & Hà Nội:</strong> Giao siêu tốc trong 2H - 4H hoặc nhận hàng trong ngày.</li>
               <li><strong>Các tỉnh thành khác:</strong> Thời gian giao hàng tiêu chuẩn từ 2 - 4 ngày làm việc.</li>
-              <li><strong>Ưu đãi Freeship:</strong> Miễn phí 100% cước vận chuyển cho toàn bộ đơn hàng có giá trị thanh toán từ <strong>1.000.000₫</strong> trở lên.</li>
+              <li><strong>Ưu đãi Freeship:</strong> Miễn phí 100% cước vận chuyển cho toàn bộ đơn hàng có giá trị thanh toán từ <strong>{formatMoneyShort(PROMO.freeShip.threshold)}</strong> trở lên.</li>
               <li>Khách hàng được quyền đồng kiểm tra hàng trước khi thanh toán tiền mặt (COD).</li>
             </ul>
           </div>
