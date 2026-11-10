@@ -3,6 +3,62 @@ import prisma from '@/lib/prisma';
 import { checkAuthFromRequest } from '@/lib/auth';
 import { logAuditAction } from '@/lib/audit';
 
+// 1. LẤY CHI TIẾT ĐƠN HÀNG (Dành cho cả Khách Guest, User và Admin)
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const authSession = await checkAuthFromRequest(request);
+    const orderId = params.id;
+
+    const isStaffOrAdmin = authSession?.role === 'ADMIN' || authSession?.role === 'STAFF';
+
+    // Tìm đơn hàng theo id (UUID/String) hoặc orderNumber (VC-20261110-xxxx)
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { id: orderId },
+          { orderNumber: orderId }
+        ]
+      },
+      include: {
+        items: true,
+        shipments: true,
+        payments: true,
+        statusHistory: { orderBy: { createdAt: 'desc' } }
+      }
+    });
+
+    if (!order) {
+      return NextResponse.json({ message: 'Không tìm thấy đơn hàng' }, { status: 404 });
+    }
+
+    // Nếu không phải Staff/Admin và đơn thuộc sở hữu của User khác thì từ chối
+    if (!isStaffOrAdmin && order.userId && order.userId !== authSession?.userId) {
+      return NextResponse.json({ message: 'Bạn không có quyền xem đơn hàng này' }, { status: 403 });
+    }
+
+    // Redact costPrice nếu không phải Staff/Admin
+    const items = order.items.map((item) => {
+      if (!isStaffOrAdmin) {
+        const { costPrice, ...rest } = item;
+        return rest;
+      }
+      return item;
+    });
+
+    return NextResponse.json({
+      success: true,
+      order: { ...order, items }
+    });
+  } catch (error) {
+    console.error('Fetch order detail error:', error);
+    return NextResponse.json({ message: 'Lỗi lấy thông tin đơn hàng' }, { status: 500 });
+  }
+}
+
+// 2. CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG (Dành cho Admin/Staff)
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
@@ -15,8 +71,13 @@ export async function POST(
 
     const { orderStatus, paymentStatus, note, trackingNumber } = await request.json();
 
-    const order = await prisma.order.findUnique({
-      where: { id: params.id },
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { id: params.id },
+          { orderNumber: params.id }
+        ]
+      },
     });
 
     if (!order) {
@@ -30,7 +91,7 @@ export async function POST(
 
     const updatedOrder = await prisma.$transaction(async (tx) => {
       const ord = await tx.order.update({
-        where: { id: params.id },
+        where: { id: order.id },
         data: updateData,
       });
 
@@ -79,4 +140,3 @@ export async function POST(
     return NextResponse.json({ message: 'Lỗi cập nhật trạng thái đơn hàng' }, { status: 500 });
   }
 }
-

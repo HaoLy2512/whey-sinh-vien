@@ -3,8 +3,8 @@ import prisma from '@/lib/prisma';
 import { checkAuthFromRequest } from '@/lib/auth';
 import { logAuditAction } from '@/lib/audit';
 import { sendOrderConfirmationEmail } from '@/lib/mail';
-
 import { PROMO } from '@/config/promo';
+
 export async function GET(request: Request) {
   try {
     const authSession = await checkAuthFromRequest(request);
@@ -12,6 +12,7 @@ export async function GET(request: Request) {
     const orderStatus = searchParams.get('status');
     const paymentStatus = searchParams.get('paymentStatus');
     const search = searchParams.get('search');
+    const orderNumber = searchParams.get('orderNumber'); // Hỗ trợ tra cứu theo orderNumber cho Khách/Guest
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '15')));
     const skip = (page - 1) * limit;
@@ -22,11 +23,20 @@ export async function GET(request: Request) {
     const where: any = {};
 
     if (!isStaffOrAdmin) {
-      // Must be authenticated to view orders, and only their own
-      if (!authSession) {
-        return NextResponse.json({ message: 'Vui lòng đăng nhập để xem lịch sử đơn hàng' }, { status: 401 });
+      if (orderNumber) {
+        // Cho phép tra cứu đơn hàng vừa tạo thông qua orderNumber (VC-...) mà không bắt buộc login
+        where.orderNumber = orderNumber;
+      } else if (authSession?.userId) {
+        // Nếu đã đăng nhập thì lấy các đơn của User đó
+        where.userId = authSession.userId;
+      } else {
+        // Cho phép trả về mảng rỗng thay vì ném lỗi 401 để trang frontend không bị crash UI
+        return NextResponse.json({
+          success: true,
+          orders: [],
+          pagination: { page: 1, limit, total: 0, totalPages: 0 },
+        });
       }
-      where.userId = authSession.userId;
     } else {
       // Admin/Staff filters
       if (search) {
@@ -167,7 +177,7 @@ export async function POST(request: Request) {
         if (variant.inStock < item.quantity) {
           return NextResponse.json(
             {
-              message: `Sản phẩm "${product.name} - ${variant.title}" chỉ còn ${variant.inStock} sản phẩm trong kho`,
+              message: `Sản phẩm "${product.name} ${variant.title}" chỉ còn ${variant.inStock} sản phẩm trong kho`,
             },
             { status: 400 }
           );
@@ -251,7 +261,7 @@ export async function POST(request: Request) {
           taxAmount: 0,
           totalAmount,
           paymentMethod,
-          paymentStatus: paymentMethod === 'COD' ? 'PENDING' : 'PENDING',
+          paymentStatus: 'PENDING',
           orderStatus: 'CONFIRMED',
           couponCode: couponCode ? couponCode.toUpperCase().trim() : null,
           internalNotes: customerNotes ? `Ghi chú khách: ${customerNotes}` : null,
@@ -408,4 +418,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Lỗi trong quá trình tạo đơn hàng' }, { status: 500 });
   }
 }
-
