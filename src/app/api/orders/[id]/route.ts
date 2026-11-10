@@ -14,7 +14,6 @@ export async function GET(
 
     const isStaffOrAdmin = authSession?.role === 'ADMIN' || authSession?.role === 'STAFF';
 
-    // Tìm đơn hàng theo id (UUID/String) hoặc orderNumber (VC-20261110-xxxx)
     const order = await prisma.order.findFirst({
       where: {
         OR: [
@@ -34,12 +33,10 @@ export async function GET(
       return NextResponse.json({ message: 'Không tìm thấy đơn hàng' }, { status: 404 });
     }
 
-    // Nếu không phải Staff/Admin và đơn thuộc sở hữu của User khác thì từ chối
     if (!isStaffOrAdmin && order.userId && order.userId !== authSession?.userId) {
       return NextResponse.json({ message: 'Bạn không có quyền xem đơn hàng này' }, { status: 403 });
     }
 
-    // Redact costPrice nếu không phải Staff/Admin
     const items = order.items.map((item) => {
       if (!isStaffOrAdmin) {
         const { costPrice, ...rest } = item;
@@ -89,7 +86,6 @@ export async function POST(
     if (paymentStatus) updateData.paymentStatus = paymentStatus;
     if (trackingNumber) updateData.trackingNumber = trackingNumber;
 
-    // BỔ SUNG: Nếu chuyển sang DELIVERED (Đã giao hàng), tự động cập nhật thanh toán thành PAID để tính doanh thu
     if (orderStatus === 'DELIVERED') {
       updateData.paymentStatus = 'PAID';
     }
@@ -111,7 +107,6 @@ export async function POST(
           },
         });
 
-        // Nếu đơn thành công, cập nhật shipment và tạo bản ghi payment (nếu chưa có)
         if (orderStatus === 'DELIVERED') {
           await tx.shipment.updateMany({
             where: { orderId: ord.id },
@@ -127,7 +122,7 @@ export async function POST(
               data: {
                 orderId: ord.id,
                 amount: ord.totalAmount,
-                provider: ord.paymentMethod,
+                paymentMethod: ord.paymentMethod,
                 status: 'COMPLETED',
                 transactionId: `PAY-${ord.orderNumber}`,
               }
