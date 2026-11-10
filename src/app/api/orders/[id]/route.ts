@@ -58,7 +58,7 @@ export async function GET(
   }
 }
 
-// 2. CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG (Dành cho Admin/Staff)
+// 2. CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG (Dành cho Admin/Staff & Tự đồng bộ Doanh thu)
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
@@ -89,6 +89,11 @@ export async function POST(
     if (paymentStatus) updateData.paymentStatus = paymentStatus;
     if (trackingNumber) updateData.trackingNumber = trackingNumber;
 
+    // BỔ SUNG: Nếu chuyển sang DELIVERED (Đã giao hàng), tự động cập nhật thanh toán thành PAID để tính doanh thu
+    if (orderStatus === 'DELIVERED') {
+      updateData.paymentStatus = 'PAID';
+    }
+
     const updatedOrder = await prisma.$transaction(async (tx) => {
       const ord = await tx.order.update({
         where: { id: order.id },
@@ -106,12 +111,28 @@ export async function POST(
           },
         });
 
-        // If delivered, mark shipment as delivered
+        // Nếu đơn thành công, cập nhật shipment và tạo bản ghi payment (nếu chưa có)
         if (orderStatus === 'DELIVERED') {
           await tx.shipment.updateMany({
             where: { orderId: ord.id },
             data: { status: 'DELIVERED', deliveredAt: new Date() },
           });
+
+          const existingPayment = await tx.payment.findFirst({
+            where: { orderId: ord.id }
+          });
+
+          if (!existingPayment) {
+            await tx.payment.create({
+              data: {
+                orderId: ord.id,
+                amount: ord.totalAmount,
+                provider: ord.paymentMethod,
+                status: 'COMPLETED',
+                transactionId: `PAY-${ord.orderNumber}`,
+              }
+            });
+          }
         }
       }
 
@@ -129,7 +150,7 @@ export async function POST(
         orderNumber: order.orderNumber,
         fromStatus: order.orderStatus,
         toStatus: orderStatus,
-        paymentStatus,
+        paymentStatus: updateData.paymentStatus || paymentStatus,
         note,
       },
     });
